@@ -1,0 +1,117 @@
+# API Keys and Sensitive Configuration
+*.env
+.env*
+**/api_keys.json
+**/config.json
+**/secrets.json
+
+# OpenAI API Keys
+*openai*key*
+OPENAI_API_KEY
+openai_api_key
+
+# Atlassian API Keys
+*atlassian*key*
+ATLASSIAN_API_KEY
+atlassian_api_key
+*jira*key*
+JIRA_API_KEY
+
+# Other API Keys
+*api_key*
+*API_KEY*
+*secret*
+*SECRET*
+*token*
+*TOKEN*
+
+# Database files (may contain sensitive data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Cache
+.cache/
+cache/
+
+# User-specific files
+user_data/
+personal/
+private/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS generated files
+.directory
+.fuse_hidden*
+.nfs*

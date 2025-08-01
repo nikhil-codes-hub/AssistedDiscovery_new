@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_190143__OrderViewRS0_Response1_DataLists0_PaxJourneyList3",
+  "name": "PAX_JOURNEY_LIST_STRUCTURE",
+  "description": "Defines the structure of a 'PaxJourneyList', which contains multiple 'PaxJourney' nodes. Each 'PaxJourney' includes a unique 'PaxJourneyID', a 'Duration', and a 'PaxSegmentRefID', representing a journey and its associated segment.",
+  "prompt": "Verify that the 'PaxJourneyList' contains multiple 'PaxJourney' nodes, each with a unique 'PaxJourneyID', a valid 'Duration' in ISO 8601 format, and a 'PaxSegmentRefID'. Ensure the hierarchical structure is maintained.",
+  "example": "<PaxJourneyList>\n  <PaxJourney>\n    <PaxJourneyID>FLT1</PaxJourneyID>\n    <Duration>PT4H55M</Duration>\n    <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n  </PaxJourney>\n  <PaxJourney>\n    <PaxJourneyID>FLT2</PaxJourneyID>\n    <Duration>PT4H35M</Duration>\n    <PaxSegmentRefID>SEG2</PaxSegmentRefID>\n  </PaxJourney>\n</PaxJourneyList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3]",
+  "category": "passenger",
+  "created_at": "2025-07-31T19:01:43.604286",
+  "updated_at": "2025-07-31T19:01:43.604286",
+  "is_active": true
+}

@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_172134__OrderViewRS0_Response1_DataLists0_PaxJourneyList3_PaxJourney0_PaxJourneyID -> _OrderViewRS0_Response1_DataLists0_PaxJourneyList3_PaxJourney0_PaxSegmentRefID",
+  "name": "PAX_JOURNEY_SEGMENT_MAPPING",
+  "description": "Defines the relationship between 'PaxJourneyID' and 'PaxSegmentRefID', where the journey ID uniquely identifies a journey, and the segment reference ID links the journey to a specific segment.",
+  "prompt": "Validate that each 'PaxJourneyID' correctly maps to a 'PaxSegmentRefID', ensuring the linkage between journeys and segments is consistent and unique.",
+  "example": "<PaxJourney>\n  <PaxJourneyID>FLT1</PaxJourneyID>\n  <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n</PaxJourney>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3]/PaxJourney[0]/PaxJourneyID -> /OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3]/PaxJourney[0]/PaxSegmentRefID",
+  "category": "airline",
+  "created_at": "2025-07-31T17:21:34.552276",
+  "updated_at": "2025-07-31T17:21:34.552276",
+  "is_active": true
+}

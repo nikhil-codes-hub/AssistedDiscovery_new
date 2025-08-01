@@ -1,0 +1,7 @@
+# .streamlit/config.toml
+[theme]
+primaryColor="#064882"
+backgroundColor="#FFFFFF"  # Changed background color to light blue
+secondaryBackgroundColor="#ADD8E6"
+textColor="#000000"  # Changed text color to black
+font="sans serif"

@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250801_103604__OrderViewRS0_Response1_DataLists0_ContactInfoList1",
+  "name": "CONTACT_INFO_LIST_STRUCTURE",
+  "description": "Defines the structure for a list of contact information entries, each linked to a specific passenger via the IndividualRef element. Includes details such as contact type, phone numbers, and email addresses.",
+  "prompt": "Verify that each <ContactInfo> in <ContactInfoList> has a unique <ContactInfoID>, a <ContactTypeText>, and either a <Phone> or <EmailAddress> element. Ensure that <IndividualRef> correctly references a valid <PaxID> from the PaxList.",
+  "example": "<ContactInfoList>\n  <ContactInfo>\n    <ContactInfoID>CTCPAX2_1</ContactInfoID>\n    <ContactTypeText>NOTIFICATION</ContactTypeText>\n    <IndividualRef>PAX2</IndividualRef>\n    <Phone>\n      <LabelText>MOBILE</LabelText>\n      <CountryDialingCode>33</CountryDialingCode>\n      <PhoneNumber>561470855</PhoneNumber>\n    </Phone>\n    <EmailAddress>\n      <EmailAddressText>NAME_SURNAME_ADT@MYMAIL.COM</EmailAddressText>\n    </EmailAddress>\n  </ContactInfo>\n</ContactInfoList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/ContactInfoList[1]",
+  "category": "user_created",
+  "created_at": "2025-08-01T10:36:04.424141",
+  "updated_at": "2025-08-01T10:36:04.424141",
+  "is_active": true
+}

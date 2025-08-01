@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250801_105614__OrderViewRS0_Response1_DataLists0_PaxJourneyList3 and _OrderViewRS0_Response1_DataLists0_ServiceDefinitionList7",
+  "name": "PAX_JOURNEY_TO_SERVICE_DEFINITION_MAPPING",
+  "description": "Defines a mapping relationship between PaxJourneyList and ServiceDefinitionList, where PaxSegmentRefID in PaxJourneyList aligns with BaggageAllowanceRefID in ServiceDefinitionList. This relationship maps passenger journeys to their corresponding baggage allowances.",
+  "prompt": "Verify that each <PaxSegmentRefID> in <PaxJourneyList> corresponds to a <BaggageAllowanceRefID> in <ServiceDefinitionList>, ensuring a valid mapping between passenger journeys and baggage allowances.",
+  "example": "<PaxJourneyList>\n  <PaxJourney>\n    <PaxJourneyID>FLT1</PaxJourneyID>\n    <Duration>PT4H55M</Duration>\n    <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n  </PaxJourney>\n</PaxJourneyList>\n<ServiceDefinitionList>\n  <ServiceDefinition>\n    <ServiceDefinitionID>BAGALLOW_1</ServiceDefinitionID>\n    <Name>Bag allowances</Name>\n    <ServiceDefinitionAssociation>\n      <BaggageAllowanceRefID>SEG1</BaggageAllowanceRefID>\n    </ServiceDefinitionAssociation>\n  </ServiceDefinition>\n</ServiceDefinitionList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3] and /OrderViewRS[0]/Response[1]/DataLists[0]/ServiceDefinitionList[7]",
+  "category": "flight",
+  "created_at": "2025-08-01T10:56:14.245036",
+  "updated_at": "2025-08-01T10:56:14.245036",
+  "is_active": true
+}

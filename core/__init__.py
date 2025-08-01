@@ -1,0 +1,1 @@
+# Core module for Agentic Gap Analyser

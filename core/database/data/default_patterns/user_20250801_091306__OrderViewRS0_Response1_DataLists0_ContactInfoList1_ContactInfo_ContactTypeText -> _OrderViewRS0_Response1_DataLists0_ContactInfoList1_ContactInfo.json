@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250801_091306__OrderViewRS0_Response1_DataLists0_ContactInfoList1_ContactInfo_ContactTypeText -> _OrderViewRS0_Response1_DataLists0_ContactInfoList1_ContactInfo",
+  "name": "CONTACT_TYPE_DEPENDENCY",
+  "description": "Establishes a dependency where the 'ContactTypeText' (e.g., NOTIFICATION, STANDARD) determines the type of contact and influences the structure and purpose of the associated 'Phone' and 'EmailAddress' nodes.",
+  "prompt": "Ensure that the <ContactTypeText> in each <ContactInfo> node is valid and that the structure of the associated <Phone> and <EmailAddress> nodes aligns with the specified contact type.",
+  "example": "<ContactInfo>\n  <ContactTypeText>NOTIFICATION</ContactTypeText>\n  <Phone>\n    <LabelText>MOBILE</LabelText>\n    <CountryDialingCode>33</CountryDialingCode>\n    <PhoneNumber>561470855</PhoneNumber>\n  </Phone>\n  <EmailAddress>\n    <EmailAddressText>NAME_SURNAME_ADT@MYMAIL.COM</EmailAddressText>\n  </EmailAddress>\n</ContactInfo>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/ContactInfoList[1]/ContactInfo/ContactTypeText -> /OrderViewRS[0]/Response[1]/DataLists[0]/ContactInfoList[1]/ContactInfo",
+  "category": "user_created",
+  "created_at": "2025-08-01T09:13:06.589807",
+  "updated_at": "2025-08-01T09:13:06.589807",
+  "is_active": true
+}

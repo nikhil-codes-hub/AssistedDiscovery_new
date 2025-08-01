@@ -1,0 +1,12 @@
+{
+  "pattern_id": "fare_info_basic",
+  "name": "Basic Fare Information",
+  "description": "Extract fare and pricing details from booking elements",
+  "prompt": "Extract fare information including fare basis code, fare amount, currency, taxes, and total price from the provided XML element.",
+  "example": "<Fare><BaseFare Currency='USD'>299.00</BaseFare><Taxes>45.60</Taxes></Fare>",
+  "xpath": "//Fare | //FareInfo | //Pricing",
+  "category": "fare",
+  "created_at": "2025-08-01T11:05:58.389983",
+  "updated_at": "2025-08-01T11:05:58.389983",
+  "is_active": true
+}

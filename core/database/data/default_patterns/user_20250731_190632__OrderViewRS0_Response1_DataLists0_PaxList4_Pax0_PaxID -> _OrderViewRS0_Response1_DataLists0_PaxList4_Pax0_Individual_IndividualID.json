@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_190632__OrderViewRS0_Response1_DataLists0_PaxList4_Pax0_PaxID -> _OrderViewRS0_Response1_DataLists0_PaxList4_Pax0_Individual_IndividualID",
+  "name": "PAX_INDIVIDUAL_MAPPING",
+  "description": "Ensures that the IndividualID in the Individual node matches the PaxID of the same Pax node, establishing a one-to-one mapping between a passenger and their detailed information.",
+  "prompt": "Verify that the <IndividualID> in the <Individual> node matches the <PaxID> of the same <Pax> node, ensuring consistency in passenger identification.",
+  "example": "<Pax>\n  <PaxID>PAX3</PaxID>\n  <PTC>INF</PTC>\n  <Individual>\n    <IndividualID>PAX3</IndividualID>\n    <Birthdate>2023-09-24</Birthdate>\n    <GivenName>FBYJFH</GivenName>\n    <Surname>NDCX</Surname>\n  </Individual>\n</Pax>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxList[4]/Pax[0]/PaxID -> /OrderViewRS[0]/Response[1]/DataLists[0]/PaxList[4]/Pax[0]/Individual/IndividualID",
+  "category": "passenger",
+  "created_at": "2025-07-31T19:06:32.551834",
+  "updated_at": "2025-07-31T19:06:32.551834",
+  "is_active": true
+}

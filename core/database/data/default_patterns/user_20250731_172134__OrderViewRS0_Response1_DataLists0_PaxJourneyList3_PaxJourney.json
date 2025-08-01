@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_172134__OrderViewRS0_Response1_DataLists0_PaxJourneyList3_PaxJourney",
+  "name": "PAX_JOURNEY_UNIT",
+  "description": "Represents a single passenger journey, including its unique ID ('PaxJourneyID'), duration ('Duration'), and a reference to a segment ('PaxSegmentRefID').",
+  "prompt": "Ensure that each <PaxJourney> node contains a unique <PaxJourneyID>, a valid <Duration> in ISO 8601 format, and a <PaxSegmentRefID> that references an existing segment.",
+  "example": "<PaxJourney>\n  <PaxJourneyID>FLT1</PaxJourneyID>\n  <Duration>PT4H55M</Duration>\n  <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n</PaxJourney>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3]/PaxJourney",
+  "category": "airline",
+  "created_at": "2025-07-31T17:21:34.551560",
+  "updated_at": "2025-07-31T17:21:34.551560",
+  "is_active": true
+}

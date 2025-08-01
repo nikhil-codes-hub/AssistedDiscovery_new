@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_171324__OrderViewRS0_Response1_DataLists0_ContactInfoList1_ContactInfo_ContactInfoID",
+  "name": "CONTACT_INFO_ID_TO_INDIVIDUAL_REF_MAPPING",
+  "description": "Represents the reference relationship between 'ContactInfoID' and 'IndividualRef'. Each 'ContactInfoID' uniquely identifies a contact and maps to an individual via 'IndividualRef'. This mapping is critical for associating contact details with specific individuals.",
+  "prompt": "Validate that each <ContactInfoID> in <ContactInfo> maps correctly to an <IndividualRef>, ensuring the reference is unique and consistent.",
+  "example": "<ContactInfo>\n  <ContactInfoID>CTCPAX2_1</ContactInfoID>\n  <IndividualRef>PAX2</IndividualRef>\n</ContactInfo>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/ContactInfoList[1]/ContactInfo/ContactInfoID",
+  "category": "user_created",
+  "created_at": "2025-07-31T17:13:24.775256",
+  "updated_at": "2025-07-31T17:13:24.775256",
+  "is_active": true
+}

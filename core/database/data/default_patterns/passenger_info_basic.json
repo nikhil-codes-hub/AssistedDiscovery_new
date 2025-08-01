@@ -1,0 +1,12 @@
+{
+  "pattern_id": "passenger_info_basic",
+  "name": "Basic Passenger Information",
+  "description": "Extract passenger details including name, contact information, and preferences",
+  "prompt": "Extract passenger information including first name, last name, email, phone number, and any special service requests from the provided XML element.",
+  "example": "<Passenger><Name><First>John</First><Last>Doe</Last></Name><Email>john@example.com</Email></Passenger>",
+  "xpath": "//Passenger | //PassengerInfo | //Traveler",
+  "category": "passenger",
+  "created_at": "2025-08-01T11:05:58.389345",
+  "updated_at": "2025-08-01T11:05:58.389345",
+  "is_active": true
+}

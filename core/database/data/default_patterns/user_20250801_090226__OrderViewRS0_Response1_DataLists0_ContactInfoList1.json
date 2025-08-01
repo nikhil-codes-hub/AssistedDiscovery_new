@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250801_090226__OrderViewRS0_Response1_DataLists0_ContactInfoList1",
+  "name": "CONTACT_INFO_LIST_STRUCTURE",
+  "description": "Defines the structure of a list of contact information, where each <ContactInfo> node contains a unique identifier, a reference to an individual, a contact type, and associated communication details (phone and email).",
+  "prompt": "Validate that each <ContactInfo> in <ContactInfoList> contains a unique <ContactInfoID>, an <IndividualRef>, a <ContactTypeText>, and valid <Phone> and <EmailAddress> nodes.",
+  "example": "<ContactInfoList>\n  <ContactInfo>\n    <ContactInfoID>CTCPAX2_1</ContactInfoID>\n    <ContactTypeText>NOTIFICATION</ContactTypeText>\n    <IndividualRef>PAX2</IndividualRef>\n    <Phone>\n      <LabelText>MOBILE</LabelText>\n      <CountryDialingCode>33</CountryDialingCode>\n      <PhoneNumber>561470855</PhoneNumber>\n    </Phone>\n    <EmailAddress>\n      <EmailAddressText>NAME_SURNAME_ADT@MYMAIL.COM</EmailAddressText>\n    </EmailAddress>\n  </ContactInfo>\n</ContactInfoList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/ContactInfoList[1]",
+  "category": "nikhil",
+  "created_at": "2025-08-01T09:02:26.755125",
+  "updated_at": "2025-08-01T09:02:26.755125",
+  "is_active": true
+}

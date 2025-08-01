@@ -1,0 +1,12 @@
+{
+  "pattern_id": "user_20250731_172134__OrderViewRS0_Response1_DataLists0_PaxJourneyList3",
+  "name": "PAX_JOURNEY_LIST_STRUCTURE",
+  "description": "Defines the structure of a list of passenger journeys, where each journey is uniquely identified by 'PaxJourneyID', has a duration, and references a segment via 'PaxSegmentRefID'.",
+  "prompt": "Verify that each <PaxJourney> in <PaxJourneyList> contains a unique <PaxJourneyID>, a valid <Duration>, and a <PaxSegmentRefID> referencing a segment.",
+  "example": "<PaxJourneyList>\n  <PaxJourney>\n    <PaxJourneyID>FLT1</PaxJourneyID>\n    <Duration>PT4H55M</Duration>\n    <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n  </PaxJourney>\n  <PaxJourney>\n    <PaxJourneyID>FLT2</PaxJourneyID>\n    <Duration>PT4H35M</Duration>\n    <PaxSegmentRefID>SEG2</PaxSegmentRefID>\n  </PaxJourney>\n</PaxJourneyList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3]",
+  "category": "airline",
+  "created_at": "2025-07-31T17:21:34.549897",
+  "updated_at": "2025-07-31T17:21:34.549897",
+  "is_active": true
+}

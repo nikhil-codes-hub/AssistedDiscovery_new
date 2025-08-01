@@ -1,0 +1,12 @@
+{
+  "pattern_id": "flight_segment_basic",
+  "name": "Basic Flight Segment",
+  "description": "Extract basic flight segment information including departure and arrival details",
+  "prompt": "Extract flight segment data including departure airport, arrival airport, flight number, and departure time from the provided XML element.",
+  "example": "<FlightSegment><DepartureAirport>NYC</DepartureAirport><ArrivalAirport>LAX</ArrivalAirport></FlightSegment>",
+  "xpath": "//FlightSegment | //Segment | //Flight",
+  "category": "flight",
+  "created_at": "2025-08-01T11:05:58.388210",
+  "updated_at": "2025-08-01T11:05:58.388210",
+  "is_active": true
+}
