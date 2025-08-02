@@ -151,18 +151,56 @@ class EnhancedIdentifyPatternsPage:
             with col3:
                 st.metric("Analysis Status", "Ready")
 
+            # Check workspace status before analysis
+            workspace_patterns_count = len(self.db_utils.get_all_patterns()) if self.db_utils else 0
+            
+            # Also check shared patterns
+            try:
+                from core.database.default_patterns_manager import DefaultPatternsManager
+                default_patterns_manager = DefaultPatternsManager()
+                shared_patterns_count = len(default_patterns_manager.get_all_patterns())
+            except:
+                shared_patterns_count = 0
+            
+            total_patterns = workspace_patterns_count + shared_patterns_count
+            
+            if total_patterns == 0:
+                st.warning("""
+                ⚠️ **No Saved Patterns Available**: No patterns exist in your workspace or shared library. 
+                Pattern identification requires existing patterns to compare against. 
+                Please save some patterns from the Discovery page first.
+                """)
+            
             # Analysis section
             st.markdown("#### Genie Pattern Analysis")
-            st.markdown("Click the button below to start pattern identification and structural analysis.")
+            if total_patterns > 0:
+                pattern_sources = []
+                if workspace_patterns_count > 0:
+                    pattern_sources.append(f"{workspace_patterns_count} workspace patterns")
+                if shared_patterns_count > 0:
+                    pattern_sources.append(f"{shared_patterns_count} shared patterns")
+                
+                sources_text = " and ".join(pattern_sources)
+                st.markdown(f"Click the button below to identify patterns using **{total_patterns} patterns** ({sources_text}).")
+            else:
+                st.markdown("Pattern identification will be available once you save patterns to your workspace or shared library.")
 
             # Analysis button
             analysis_col1, analysis_col2 = st.columns([2, 1])
             with analysis_col1:
-                analysis_clicked = st.button("Start Pattern Analysis", type="primary", use_container_width=True)
+                analysis_clicked = st.button(
+                    "Start Pattern Analysis", 
+                    type="primary", 
+                    use_container_width=True,
+                    disabled=(total_patterns == 0),
+                    help="Requires saved patterns in workspace or shared library" if total_patterns == 0 else "Analyze XML against saved patterns"
+                )
             
             with analysis_col2:
-                if unknown_source_xml:
-                    st.success("Ready for Analysis")
+                if total_patterns == 0:
+                    st.error("No Patterns Available")
+                elif unknown_source_xml:
+                    st.success(f"Ready for Analysis ({total_patterns} patterns)")
                 else:
                     st.info("Upload XML first")
             
@@ -175,8 +213,6 @@ class EnhancedIdentifyPatternsPage:
                         
                         st.write("Genie is analyzing patterns...")
                         analysis = self._pattern_identify_manager.verify_and_confirm_airline(unknown_source_xml_content, None)
-                        
-                        st.write("Generating insights...")
                         
                         if analysis:
                             status.update(label="**Analysis Complete!**", state="complete")
@@ -251,66 +287,58 @@ class EnhancedIdentifyPatternsPage:
             """, unsafe_allow_html=True)
     
     def _render_all_patterns_view(self, extracted_patterns, shared_patterns, database_results):
-        """Render all patterns in a single unified view"""
-        # Count all patterns
-        total_extracted = len(extracted_patterns)
+        """Render saved patterns only (shared and database patterns)"""
+        # Count only saved patterns (exclude extracted/session patterns)
         total_shared = len(shared_patterns)
         total_database = len(database_results) if database_results else 0
-        total_patterns = total_extracted + total_shared + total_database
+        total_patterns = total_shared + total_database
         
         if total_patterns > 0:
-            st.markdown("### 📚 Pattern Library")
-            st.info(f"**All Patterns:** {total_patterns} patterns from extracted, shared, and saved sources")
+            st.markdown("### 📚 Saved Pattern Library")
+            st.info(f"**Saved Patterns:** {total_patterns} patterns from shared workspace and saved databases")
             
-            # Combined metrics
-            col1, col2, col3, col4 = st.columns(4)
+            # Saved patterns metrics
+            col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Total Patterns", total_patterns)
+                st.metric("Total Saved", total_patterns)
             with col2:
-                st.metric("Extracted", total_extracted)
+                st.metric("Shared Workspace", total_shared)
             with col3:
-                st.metric("Shared", total_shared)
-            with col4:
-                st.metric("Saved to DB", total_database)
+                st.metric("Custom Patterns", total_database)
             
-            # Create combined DataFrame for filtering and display
+            # Create combined DataFrame for filtering and display (saved patterns only)
             combined_data = []
             
-            # Add extracted patterns
-            for tag, pattern_data in extracted_patterns.items():
-                combined_data.append({
-                    "Source": "Extracted",
-                    "Name": pattern_data.get('name', 'Unnamed Pattern'),
-                    "Category": pattern_data.get('category', 'user_created').replace('_', ' ').title(),
-                    "XPath": tag,
-                    "Description": pattern_data.get('description', 'No description'),
-                    "Status": "✅ Verified" if pattern_data.get('verified', False) else "⏳ Unverified"
-                })
-            
-            # Add shared patterns
+            # Add shared patterns (these are saved)
             for pattern in shared_patterns:
+                # Use API and API Version if available, otherwise use fallback values
+                airline = pattern.api or "Shared"
+                api_version = pattern.api_version or "N/A"
+                
                 combined_data.append({
-                    "Source": "Shared",
+                    "Source": "Shared Workspace",
                     "Name": pattern.name,
                     "Category": (pattern.category or 'uncategorized').replace('_', ' ').title(),
+                    "Airline": airline,
+                    "API Version": api_version,
                     "XPath": pattern.xpath,
-                    "Description": pattern.description or "No description",
-                    "Status": "🌐 Shared"
+                    "Description": pattern.description or "No description"
                 })
             
-            # Add database patterns with proper category mapping
+            # Add database patterns (these are saved)
             if database_results:
                 for result in database_results:
                     api_name, api_version, section_name, pattern_desc, pattern_prompt = result
                     # Convert section_name (XPath) to a more readable category
                     category = self._xpath_to_category(section_name)
                     combined_data.append({
-                        "Source": f"Database ({api_name})",
+                        "Source": f"Custom ({api_name})",
                         "Name": f"Pattern from {section_name}",
                         "Category": category,
+                        "Airline": api_name,
+                        "API Version": api_version or "N/A",
                         "XPath": section_name,
-                        "Description": pattern_desc or "No description",
-                        "Status": f"💾 Saved (v{api_version})"
+                        "Description": pattern_desc or "No description"
                     })
             
             if combined_data:
@@ -330,18 +358,22 @@ class EnhancedIdentifyPatternsPage:
                                               default=sorted(df['Category'].unique()))
                 
                 with col3:
-                    statuses = st.multiselect("📊 Filter by Status", 
-                                            options=df['Status'].unique(), 
-                                            default=df['Status'].unique())
+                    airlines = st.multiselect("✈️ Filter by Airline", 
+                                            options=sorted(df['Airline'].unique()), 
+                                            default=sorted(df['Airline'].unique()))
                 
                 # Apply filters
                 filtered_df = df[
                     (df['Source'].isin(sources)) & 
                     (df['Category'].isin(categories)) & 
-                    (df['Status'].isin(statuses))
+                    (df['Airline'].isin(airlines))
                 ]
                 
-                st.info(f"Showing {len(filtered_df)} of {len(df)} patterns")
+                st.info(f"Showing {len(filtered_df)} of {len(df)} saved patterns")
+                
+                # Reorder columns for better display
+                column_order = ["Source", "Name", "Category", "Airline", "API Version", "XPath", "Description"]
+                filtered_df = filtered_df[column_order]
                 
                 # Display filtered results
                 long_text_cols = ["Description", "XPath"]
@@ -352,12 +384,12 @@ class EnhancedIdentifyPatternsPage:
                 # Export options
                 col1, col2 = st.columns(2)
                 with col1:
-                    if st.button("📄 Export Filtered Results", type="primary", use_container_width=True):
+                    if st.button("📄 Export Saved Patterns", type="primary", use_container_width=True):
                         csv_data = filtered_df.to_csv(index=False)
                         st.download_button(
                             label="⬇️ Download CSV",
                             data=csv_data,
-                            file_name="pattern_library.csv",
+                            file_name="saved_pattern_library.csv",
                             mime="text/csv",
                             use_container_width=True
                         )
@@ -368,13 +400,13 @@ class EnhancedIdentifyPatternsPage:
         else:
             st.markdown("""
             <div class="enhanced-section-card" style="text-align: center; padding: 3rem 2rem;">
-                <h3 style="margin: 0 0 1rem 0; color: #374151; font-weight: 700;">Pattern Library is Empty</h3>
+                <h3 style="margin: 0 0 1rem 0; color: #374151; font-weight: 700;">No Saved Patterns Found</h3>
                 <p style="margin: 0 0 2rem 0; color: #6b7280; font-size: 1.1rem; line-height: 1.6;">
-                    Start by extracting patterns in the Discovery page to build your library.
+                    Save patterns from the Discovery page to see them in this library.
                 </p>
                 <div style="display: flex; justify-content: center; gap: 1rem;">
-                    <span style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">Extract Patterns</span>
-                    <span style="background: #60a5fa; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);">Save to Shared</span>
+                    <span style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">Extract & Save Patterns</span>
+                    <span style="background: #60a5fa; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);">Use Discovery Page</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)

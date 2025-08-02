@@ -19,6 +19,8 @@ class DefaultPattern:
     example: str
     xpath: str
     category: str = "default"
+    api: Optional[str] = None
+    api_version: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     is_active: bool = True
@@ -58,6 +60,8 @@ class DefaultPatternsManager:
                         example TEXT,
                         xpath TEXT,
                         category TEXT DEFAULT 'default',
+                        api TEXT,
+                        api_version TEXT,
                         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
                         is_active BOOLEAN DEFAULT 1
@@ -70,12 +74,34 @@ class DefaultPatternsManager:
                     ON default_patterns (category, is_active)
                 """)
                 
+                # Migration: Add new columns if they don't exist
+                self._migrate_database(cursor)
+                
                 conn.commit()
                 self.logger.info(f"Database initialized at {self.db_path}")
                 
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
             raise
+    
+    def _migrate_database(self, cursor):
+        """Migrate database to add new columns if they don't exist"""
+        try:
+            # Check if api column exists
+            cursor.execute("PRAGMA table_info(default_patterns)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'api' not in columns:
+                cursor.execute("ALTER TABLE default_patterns ADD COLUMN api TEXT")
+                self.logger.info("Added 'api' column to default_patterns table")
+            
+            if 'api_version' not in columns:
+                cursor.execute("ALTER TABLE default_patterns ADD COLUMN api_version TEXT")
+                self.logger.info("Added 'api_version' column to default_patterns table")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to migrate database: {e}")
+            # Don't raise here as this is a migration, we want the app to continue
     
     def _load_default_patterns(self):
         """Check default patterns status without auto-creating any"""
@@ -180,11 +206,15 @@ class DefaultPatternsManager:
                 
                 patterns = []
                 for row in rows:
+                    # Handle cases where api/api_version columns might not exist in older records
+                    api = row[10] if len(row) > 10 else None
+                    api_version = row[11] if len(row) > 11 else None
+                    
                     pattern = DefaultPattern(
                         pattern_id=row[0], name=row[1], description=row[2],
                         prompt=row[3], example=row[4], xpath=row[5],
                         category=row[6], created_at=row[7], updated_at=row[8],
-                        is_active=bool(row[9])
+                        is_active=bool(row[9]), api=api, api_version=api_version
                     )
                     patterns.append(pattern)
                 
@@ -206,11 +236,15 @@ class DefaultPatternsManager:
                 row = cursor.fetchone()
                 
                 if row:
+                    # Handle cases where api/api_version columns might not exist in older records
+                    api = row[10] if len(row) > 10 else None
+                    api_version = row[11] if len(row) > 11 else None
+                    
                     return DefaultPattern(
                         pattern_id=row[0], name=row[1], description=row[2],
                         prompt=row[3], example=row[4], xpath=row[5],
                         category=row[6], created_at=row[7], updated_at=row[8],
-                        is_active=bool(row[9])
+                        is_active=bool(row[9]), api=api, api_version=api_version
                     )
                 return None
                 
@@ -232,13 +266,13 @@ class DefaultPatternsManager:
                 cursor = conn.cursor()
                 cursor.execute("""
                     INSERT OR REPLACE INTO default_patterns 
-                    (pattern_id, name, description, prompt, example, xpath, category, created_at, updated_at, is_active)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (pattern_id, name, description, prompt, example, xpath, category, api, api_version, created_at, updated_at, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     pattern.pattern_id, pattern.name, pattern.description,
                     pattern.prompt, pattern.example, pattern.xpath,
-                    pattern.category, pattern.created_at, pattern.updated_at,
-                    pattern.is_active
+                    pattern.category, pattern.api, pattern.api_version,
+                    pattern.created_at, pattern.updated_at, pattern.is_active
                 ))
                 conn.commit()
             
@@ -306,11 +340,15 @@ class DefaultPatternsManager:
                 patterns = []
                 
                 for row in rows:
+                    # Handle cases where api/api_version columns might not exist in older records
+                    api = row[10] if len(row) > 10 else None
+                    api_version = row[11] if len(row) > 11 else None
+                    
                     pattern = DefaultPattern(
                         pattern_id=row[0], name=row[1], description=row[2],
                         prompt=row[3], example=row[4], xpath=row[5],
                         category=row[6], created_at=row[7], updated_at=row[8],
-                        is_active=bool(row[9])
+                        is_active=bool(row[9]), api=api, api_version=api_version
                     )
                     patterns.append(pattern)
                 

@@ -1,7 +1,7 @@
 """
 Configuration Page for Assisted Discovery
 
-This page allows users to configure Azure OpenAI settings for GPT-4o or o3-mini models.
+This page allows users to configure Azure OpenAI settings for GPT-4o model.
 """
 
 import streamlit as st
@@ -98,11 +98,8 @@ def main():
     st.markdown('<div class="config-card">', unsafe_allow_html=True)
     st.markdown("### 🤖 **AI Model Configuration**")
     
-    model_choice = st.radio(
-        "",
-        ["GPT-4o", "o3-mini"],
-        horizontal=True
-    )
+    model_choice = "GPT-4o"  # Fixed to GPT-4o only
+    st.info("**Selected Model:** GPT-4o - Advanced AI model for pattern discovery and analysis")
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Azure OpenAI configuration card
@@ -128,13 +125,9 @@ def main():
                 help="Your Azure OpenAI endpoint URL"
             )
         
-        # Auto-fill based on model choice
-        if model_choice == "GPT-4o":
-            api_version = "2025-01-01-preview"
-            model_deployment = "gpt-4o"
-        else:  # o3-mini
-            api_version = "2024-12-01-preview"
-            model_deployment = "o3-mini"
+        # GPT-4o configuration
+        api_version = "2025-01-01-preview"
+        model_deployment = "gpt-4o"
         
         # Auto-configuration info
         st.info(f"**🔧 Auto-configured for {model_choice}:** API Version `{api_version}` | Model `{model_deployment}`")
@@ -172,44 +165,25 @@ def main():
         "GPT4O_AZURE_API_VERSION", "GPT4O_MODEL_DEPLOYMENT_NAME"
     ])
     
-    o3_configured = all(key in env_vars for key in [
-        "o3_mini_AZURE_OPENAI_KEY", "o3_mini_AZURE_OPENAI_ENDPOINT",
-        "o3_mini_AZURE_API_VERSION", "o3_mini_MODEL_DEPLOYMENT_NAME"
-    ])
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if gpt4o_configured:
-            st.markdown(
-                '<div class="status-card status-success">✅ <strong>GPT-4o</strong><br/>Configuration Complete</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                '<div class="status-card status-warning">⚠️ <strong>GPT-4o</strong><br/>Configuration Incomplete</div>',
-                unsafe_allow_html=True
-            )
-    
-    with col2:
-        if o3_configured:
-            st.markdown(
-                '<div class="status-card status-success">✅ <strong>o3-mini</strong><br/>Configuration Complete</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                '<div class="status-card status-warning">⚠️ <strong>o3-mini</strong><br/>Configuration Incomplete</div>',
-                unsafe_allow_html=True
-            )
+    # Single column for GPT-4o status only
+    if gpt4o_configured:
+        st.markdown(
+            '<div class="status-card status-success">✅ <strong>GPT-4o</strong><br/>Configuration Complete</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            '<div class="status-card status-warning">⚠️ <strong>GPT-4o</strong><br/>Configuration Incomplete</div>',
+            unsafe_allow_html=True
+        )
     
     st.markdown('</div>', unsafe_allow_html=True)
     
     # Test configuration card
-    if gpt4o_configured or o3_configured:
+    if gpt4o_configured:
         st.markdown('<div class="config-card">', unsafe_allow_html=True)
         st.markdown("### 🧪 **Test Your Configuration**")
-        st.markdown("Verify that your AI model is working correctly")
+        st.markdown("Verify that your GPT-4o model is working correctly")
         
         col_test, col_space = st.columns([1, 3])
         with col_test:
@@ -223,11 +197,8 @@ def save_azure_config(model_choice, azure_key, azure_endpoint, api_version, mode
     try:
         env_manager = EnvManager()
         
-        # Determine prefix based on model choice
-        if model_choice == "GPT-4o":
-            prefix = "GPT4O"
-        else:
-            prefix = "o3_mini"
+        # GPT-4o prefix only
+        prefix = "GPT4O"
         
         # Create environment variables
         config_vars = {
@@ -316,11 +287,8 @@ def test_chat_completion(client, model_name):
 def test_azure_connection(model_choice, env_vars):
     """Test Azure OpenAI connection using a separate testing method."""
     try:
-        # Determine which configuration to test
-        if model_choice == "GPT-4o":
-            prefix = "GPT4O"
-        else:
-            prefix = "o3_mini"
+        # GPT-4o configuration only
+        prefix = "GPT4O"
         
         key_name = f"{prefix}_AZURE_OPENAI_KEY"
         endpoint_name = f"{prefix}_AZURE_OPENAI_ENDPOINT"

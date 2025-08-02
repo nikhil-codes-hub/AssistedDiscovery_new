@@ -397,10 +397,10 @@ class PatternSaver(GapAnalysisManager):
                         if pattern_selected:
                             selected_patterns[tag] = pattern_data
                     
-                    # Category selection with predefined options
+                    # Category and API selection with predefined options
                     if selected_patterns:
                         st.markdown("---")
-                        st.markdown("#### 📁 Choose Category")
+                        st.markdown("#### 📁 Choose Category and API Details")
                         
                         # Predefined categories with descriptions
                         category_options = {
@@ -413,7 +413,7 @@ class PatternSaver(GapAnalysisManager):
                             "custom": "Create a new category"
                         }
                         
-                        col1, col2 = st.columns([1, 2])
+                        col1, col2 = st.columns([1, 1])
                         
                         with col1:
                             selected_category_key = st.selectbox(
@@ -435,11 +435,58 @@ class PatternSaver(GapAnalysisManager):
                                 final_category = selected_category_key
                                 st.info(f"💡 **{selected_category_key.replace('_', ' ').title()}**: {category_options[selected_category_key]}")
                         
+                        # API and Version Selection for Shared Workspace
+                        st.markdown("#### 🎯 API Configuration for Shared Workspace")
+                        
+                        # Get available APIs (same logic as personal workspace)
+                        all_apis = self.db_utils.run_query("SELECT api_id, api_name FROM api ORDER BY api_name")
+                        valid_api_names = ['LATAM', 'LH', 'LHG', 'AFKL']
+                        apis = [(api_id, api_name) for api_id, api_name in all_apis if api_name in valid_api_names]
+                        
+                        if not apis:
+                            st.warning("❌ No valid APIs found. Please add APIs (LATAM, LH, LHG, AFKL) from the personal workspace section above.")
+                            shared_api_name = None
+                            shared_api_version = None
+                        else:
+                            api_col1, api_col2 = st.columns(2)
+                            
+                            with api_col1:
+                                # API selection dropdown with only valid APIs
+                                api_options = {f"{api[1]}": api[0] for api in apis}
+                                shared_api_name = st.selectbox(
+                                    "🏢 Select API for Shared Workspace",
+                                    options=list(api_options.keys()),
+                                    help="Choose the API to associate with these shared patterns"
+                                )
+                                shared_api_id = api_options[shared_api_name]
+                            
+                            with api_col2:
+                                # Get versions for selected API
+                                versions = self.db_utils.run_query(
+                                    "SELECT version_number FROM apiversion WHERE api_id = ? ORDER BY version_number", 
+                                    (shared_api_id,)
+                                )
+                                
+                                if versions:
+                                    version_options = [v[0] for v in versions]
+                                    shared_api_version = st.selectbox(
+                                        "📋 Select API Version for Shared",
+                                        options=version_options,
+                                        help=f"Choose the version for {shared_api_name}"
+                                    )
+                                else:
+                                    # Allow manual entry if no versions exist
+                                    shared_api_version = st.text_input(
+                                        "📝 Enter API Version for Shared",
+                                        placeholder="e.g., 17.2, 18.2, 21.3",
+                                        help="Enter the API version for shared workspace"
+                                    )
+                        
                         # Summary and save button
                         st.markdown("---")
                         st.markdown("#### 💾 Save Summary")
                         
-                        col1, col2, col3 = st.columns(3)
+                        col1, col2, col3, col4 = st.columns(4)
                         with col1:
                             st.metric("Selected Patterns", len(selected_patterns))
                         with col2:
@@ -447,22 +494,30 @@ class PatternSaver(GapAnalysisManager):
                             st.metric("Verified", verified_count)
                         with col3:
                             st.metric("Category", final_category.replace('_', ' ').title())
+                        with col4:
+                            if shared_api_name and shared_api_version:
+                                st.metric("API Version", f"{shared_api_name} v{shared_api_version}")
+                            else:
+                                st.metric("API Version", "Not Selected")
                         
                         # Save to shared workspace button
+                        can_save_shared = shared_api_name and shared_api_version and shared_api_version.strip()
                         save_shared_clicked = st.button(
                             f"🌐 Save {len(selected_patterns)} Patterns to Shared Workspace",
                             type="primary",
                             use_container_width=True,
-                            help=f"Save selected patterns to shared workspace under '{final_category}' category"
+                            disabled=not can_save_shared,
+                            help=f"Save selected patterns to shared workspace under '{final_category}' category with {shared_api_name} v{shared_api_version}" if can_save_shared else "Please select API and version first"
                         )
                         
-                        if save_shared_clicked:
+                        if save_shared_clicked and can_save_shared:
                             with st.status(f"💾 Saving {len(selected_patterns)} patterns to shared workspace...", expanded=True) as status:
                                 st.write(f"📁 Saving to category: {final_category}")
+                                st.write(f"🎯 API: {shared_api_name} v{shared_api_version}")
                                 st.write(f"🔄 Processing {len(selected_patterns)} patterns...")
                                 
                                 try:
-                                    self._save_to_default_library(selected_patterns, final_category)
+                                    self._save_to_default_library(selected_patterns, final_category, shared_api_name, shared_api_version)
                                     st.write("✅ Successfully saved to shared workspace!")
                                     status.update(label=f"✅ **{len(selected_patterns)} Patterns Saved to Shared Workspace!**", state="complete")
                                 except Exception as e:
@@ -520,7 +575,7 @@ class PatternSaver(GapAnalysisManager):
             st.error(f"An error occurred while saving patterns: {e}")
             raise e
     
-    def _save_to_default_library(self, patterns_dict: dict, category: str):
+    def _save_to_default_library(self, patterns_dict: dict, category: str, api: str = None, api_version: str = None):
         """Save patterns to the default patterns library"""
         try:
             from core.database.default_patterns_manager import DefaultPattern
@@ -544,16 +599,19 @@ class PatternSaver(GapAnalysisManager):
                     prompt=pattern_data.get('prompt', ''),
                     example=pattern_data.get('example', ''),
                     xpath=pattern_data.get('path', tag),
-                    category=category
+                    category=category,
+                    api=api,
+                    api_version=api_version
                 )
                 
                 if self.default_patterns_manager.save_pattern(default_pattern):
                     saved_count += 1
             
             if saved_count > 0:
-                st.success(f"✅ Successfully saved {saved_count} patterns to default library (category: {category})")
+                api_info = f" for {api} v{api_version}" if api and api_version else ""
+                st.success(f"✅ Successfully saved {saved_count} patterns to shared workspace (category: {category}{api_info})")
             else:
-                st.info("ℹ️ No new patterns were saved to default library (existing default patterns skipped)")
+                st.info("ℹ️ No new patterns were saved to shared workspace (existing default patterns skipped)")
                 
         except Exception as e:
             st.error(f"Error saving patterns to default library: {e}")

@@ -1,0 +1,14 @@
+{
+  "pattern_id": "user_20250801_142116__OrderViewRS0_Response1_DataLists0_PriceClassList6_PriceClass_PriceClassID -> _OrderViewRS0_Response1_DataLists0_PriceClassList6_PriceClass_Name",
+  "name": "PRICE_CLASS_CONFIGURATION_RELATIONSHIP",
+  "description": "Represents the parameter/configuration relationship between <PriceClassID> and <Name>, where the ID serves as a key and the Name provides descriptive context.",
+  "prompt": "Verify that each <PriceClassID> in <PriceClass> nodes has a corresponding <Name> that provides descriptive context. Ensure that the mapping is unique and consistent.",
+  "example": "<PriceClass>\n  <PriceClassID>FF41</PriceClassID>\n  <Name>SIN - ECON VALUE FF4</Name>\n</PriceClass>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PriceClassList[6]/PriceClass/PriceClassID -> /OrderViewRS[0]/Response[1]/DataLists[0]/PriceClassList[6]/PriceClass/Name",
+  "category": "booking",
+  "api": "LH",
+  "api_version": "18.2",
+  "created_at": "2025-08-01T14:21:16.574923",
+  "updated_at": "2025-08-01T14:21:16.574923",
+  "is_active": true
+}

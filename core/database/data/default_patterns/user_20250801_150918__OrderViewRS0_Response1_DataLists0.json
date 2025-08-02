@@ -1,0 +1,14 @@
+{
+  "pattern_id": "user_20250801_150918__OrderViewRS0_Response1_DataLists0",
+  "name": "INDIVIDUAL_TO_PRICE_CLASS_RELATIONSHIP",
+  "description": "Represents a potential reference relationship where 'IndividualRef' elements in the 'ContactInfoList' may correspond to specific 'PriceClassID' elements in the 'PriceClassList'. This relationship is inferred but not explicitly defined in the XML.",
+  "prompt": "Validate that each <IndividualRef> in <ContactInfoList> corresponds to a valid <PriceClassID> in <PriceClassList>, based on external or implicit business rules.",
+  "example": "<DataLists>\n  <PriceClassList>\n    <PriceClass>\n      <PriceClassID>FF41</PriceClassID>\n      <Name>SIN - ECON VALUE FF4</Name>\n    </PriceClass>\n  </PriceClassList>\n  <ContactInfoList>\n    <ContactInfo>\n      <ContactInfoID>CTCPAX2_1</ContactInfoID>\n      <ContactTypeText>NOTIFICATION</ContactTypeText>\n      <IndividualRef>PAX2</IndividualRef>\n      <Phone>\n        <LabelText>MOBILE</LabelText>\n        <CountryDialingCode>33</CountryDialingCode>\n        <PhoneNumber>561470855</PhoneNumber>\n      </Phone>\n      <EmailAddress>\n        <EmailAddressText>NAME_SURNAME_ADT@MYMAIL.COM</EmailAddressText>\n      </EmailAddress>\n    </ContactInfo>\n  </ContactInfoList>\n</DataLists>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]",
+  "category": "flight",
+  "api": "LHG",
+  "api_version": "17.2",
+  "created_at": "2025-08-01T15:09:18.121264",
+  "updated_at": "2025-08-01T15:09:18.121264",
+  "is_active": true
+}
