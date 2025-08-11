@@ -595,14 +595,25 @@ class UseCaseManager:
         # Workspace management controls
         st.markdown("---")
         
-        # Add New Discovery Workspace section
-        with st.expander("➕ Add New Discovery Workspace"):
+        # Add New Discovery Workspace section with highlighting
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+            border-radius: 8px;
+            padding: 4px;
+            margin: 8px 0;
+            border-left: 4px solid #22c55e;
+        ">
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.expander("➕ Add New Discovery Workspace", expanded=False):
             new_name = st.text_input("Workspace Name", placeholder="e.g., Emirates Analysis", key=f"new_name_{key}")
             new_desc = st.text_area("Description", placeholder="Brief description of this discovery workspace", key=f"new_desc_{key}")
             
             col_add, col_cancel = st.columns([1, 1])
             with col_add:
-                if st.button("Create", key=f"create_usecase_{key}"):
+                if st.button("✨ Create Workspace", key=f"create_usecase_{key}", type="primary", use_container_width=True):
                     if new_name and new_desc:
                         with st.spinner("Creating discovery workspace..."):
                             new_use_case = self.add_new_use_case(new_name, new_desc)
@@ -617,7 +628,19 @@ class UseCaseManager:
         # Delete Discovery Workspace section (only for custom workspaces)
         custom_workspaces = [uc for uc in use_cases if uc.custom]
         if custom_workspaces:
-            with st.expander("🗑️ Delete Custom Discovery Workspace"):
+            # Delete workspace highlighting
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+                border-radius: 8px;
+                padding: 4px;
+                margin: 8px 0;
+                border-left: 4px solid #ef4444;
+            ">
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.expander("🗑️ Delete Custom Discovery Workspace", expanded=False):
                 st.warning("⚠️ This will permanently delete the workspace and all its data!")
                 
                 # Create options for deletion (only custom workspaces)
@@ -644,7 +667,7 @@ class UseCaseManager:
                     
                     col_del, col_cancel = st.columns([1, 1])
                     with col_del:
-                        if st.button("🗑️ Delete Forever", key=f"delete_usecase_{key}", type="primary"):
+                        if st.button("🗑️ Delete Forever", key=f"delete_usecase_{key}", type="primary", use_container_width=True):
                             if confirm_text == f"DELETE {workspace_to_delete.name}":
                                 with st.spinner("Deleting workspace..."):
                                     if self.delete_use_case(workspace_to_delete.id):
@@ -655,88 +678,8 @@ class UseCaseManager:
                             else:
                                 st.error("❌ Confirmation text doesn't match. Please type exactly as shown.")
         
-        # Import/Export Pattern Management
-        if current_use_case:
-            with st.expander("📦 Import/Export Patterns"):
-                st.info(f"**Current Workspace:** {current_use_case.name}")
-                
-                col_export, col_import = st.columns(2)
-                
-                # Export Section
-                with col_export:
-                    st.subheader("📤 Export Patterns")
-                    st.write("Export all patterns from the current workspace to share with others.")
-                    
-                    if st.button("📤 Export Patterns", key=f"export_patterns_{key}"):
-                        with st.spinner("Exporting patterns..."):
-                            json_data = self.export_workspace_patterns()
-                            if json_data:
-                                # Get pattern count
-                                import_data = json.loads(json_data.decode('utf-8'))
-                                pattern_count = import_data["export_info"]["pattern_count"]
-                                
-                                # Create filename
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                filename = f"{current_use_case.name.replace(' ', '_')}_patterns_{timestamp}.json"
-                                
-                                st.download_button(
-                                    label=f"💾 Download {pattern_count} patterns",
-                                    data=json_data,
-                                    file_name=filename,
-                                    mime="application/json",
-                                    key=f"download_patterns_{key}"
-                                )
-                                st.success(f"✅ Ready to download {pattern_count} patterns!")
-                            else:
-                                st.error("❌ No patterns found to export or export failed")
-                
-                # Import Section
-                with col_import:
-                    st.subheader("📥 Import Patterns")
-                    st.write("Import patterns from a file into the current workspace.")
-                    
-                    uploaded_file = st.file_uploader(
-                        "Choose a patterns file",
-                        type=['json'],
-                        key=f"import_patterns_{key}",
-                        help="Upload a JSON file exported from another workspace"
-                    )
-                    
-                    if uploaded_file is not None:
-                        # Import mode selection
-                        merge_mode = st.selectbox(
-                            "Import Mode",
-                            ["add", "replace", "skip_existing"],
-                            key=f"merge_mode_{key}",
-                            help="Choose how to handle existing patterns:\n• add: Add new patterns, keep existing ones\n• replace: Update existing patterns with imported data\n• skip_existing: Only add patterns that don't exist"
-                        )
-                        
-                        if st.button("📥 Import Patterns", key=f"import_patterns_btn_{key}"):
-                            with st.spinner("Importing patterns..."):
-                                try:
-                                    # Read file data
-                                    json_data = uploaded_file.read()
-                                    
-                                    # Preview import data
-                                    try:
-                                        preview_data = json.loads(json_data.decode('utf-8'))
-                                        if "export_info" in preview_data:
-                                            st.info(f"**Source:** {preview_data['export_info'].get('workspace_name', 'Unknown')}")
-                                            st.info(f"**Patterns to import:** {preview_data['export_info'].get('pattern_count', 0)}")
-                                    except:
-                                        pass
-                                    
-                                    # Import patterns
-                                    success = self.import_workspace_patterns(json_data, merge_mode=merge_mode)
-                                    
-                                    if success:
-                                        st.success("✅ Patterns imported successfully!")
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ Failed to import patterns")
-                                        
-                                except Exception as e:
-                                    st.error(f"❌ Import error: {str(e)}")
+        # Import/Export functionality has been moved to the management tabs in Discovery page
+        # No longer displayed in sidebar to reduce clutter
         
         # Get selected use case ID
         if selected_option and selected_option != "":

@@ -1,33 +1,19 @@
 # AssistedDiscovery - Comprehensive User Guide
 
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Configuration Setup](#configuration-setup)
-4. [Discovery Module](#discovery-module)
-5. [Pattern Identification](#pattern-identification)
-6. [Workspace Management](#workspace-management)
-7. [Pattern Library](#pattern-library)
-8. [API Management](#api-management)
-9. [Advanced Features](#advanced-features)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
-12. [FAQ](#faq)
-
----
-
 ## Introduction
 
 **AssistedDiscovery** is an intelligent XML pattern analysis application that leverages AI-powered pattern extraction and identification capabilities. The system uses GPT-4o to automatically discover, extract, verify, and manage XML patterns from various airline API responses, making it easier to understand and work with complex XML structures.
 
-### Key Features
+Key Features
 - 🔍 **AI-Powered Pattern Discovery**: Automatically extract patterns from XML files using GPT-4o
 - ✅ **Pattern Verification**: Validate extracted patterns with AI assistance
 - 💾 **Dual Storage System**: Save patterns to personal workspaces or shared team libraries
-- 📊 **Pattern Identification**: Identify patterns in unknown XML files
+- 📊 **Pattern Identification**: Identify patterns in unknown XML files with airline/version filtering
 - 🏢 **Multi-API Support**: Work with LATAM, LH, LHG, and AFKL airline APIs
 - 📚 **Pattern Library Management**: Organize and filter patterns efficiently
 - 🎯 **Workspace-Based Organization**: Separate patterns by use cases and projects
+- 🤖 **Interactive Chatbot**: Ask Genie questions about analysis results and get intelligent responses
+- 🎨 **Modern UI**: Clean, professional interface with enhanced user experience
 
 ### Target Users
 - **Airline API Developers**: Working with complex XML responses
@@ -66,6 +52,7 @@
 4. **Access the Interface**:
    - Open your browser to `http://localhost:8501`
    - The application will launch with the Home page
+   - Navigate using the sidebar to Discovery or Identify pages
 
 ### Initial Setup Checklist
 - [ ] Azure OpenAI credentials configured
@@ -185,6 +172,31 @@ Each extracted pattern shows:
 - **Structure**: Well-formed XML produces better results
 - **Content**: Rich data yields more meaningful patterns
 - **API Context**: Correct API selection improves accuracy
+
+#### Interactive Pattern Analysis
+
+**Genie Chatbot**:
+After pattern extraction, use the **"🤖 Ask Genie About Extraction"** button to:
+
+1. **Extraction Summary**: Get detailed summaries of extracted patterns
+   - Total patterns found with descriptions
+   - Pattern categories and types identified
+   - Quality assessment of extraction results
+
+2. **Pattern Quality Analysis**: Understand extraction effectiveness
+   - Coverage assessment of XML elements
+   - Pattern completeness evaluation
+   - Recommendations for improvement
+
+3. **Next Steps Guidance**: Get recommendations for:
+   - Pattern verification strategies
+   - Saving and organization approaches
+   - Additional extraction opportunities
+
+**Quick Actions**:
+- **Extraction Summary**: "Can you summarize the pattern extraction results?"
+- **Pattern Quality**: "How good are the extracted patterns?"
+- **Next Steps**: "What should I do next with these patterns?"
 
 ### Tab 2: Verify Patterns
 
@@ -350,11 +362,31 @@ The Identify module helps you analyze unknown XML files by comparing them agains
    - **AI Verification**: GPT-4o validates matches
    - **Result Compilation**: Generate analysis report
 
+#### Step 2.5: Apply Filters (Optional)
+
+**Pattern Selection Filters**:
+Before running analysis, you can optionally filter which patterns to test against:
+
+1. **Airline Filter**:
+   - Select specific airlines from dropdown (e.g., "American Airlines", "Delta")
+   - Choose "All Airlines" to test all available patterns
+   - Reduces analysis time by focusing on relevant patterns
+
+2. **API Version Filter**:
+   - Select specific API versions (e.g., "v1.0", "v2.1")
+   - Choose "All Versions" to test all available versions
+   - Helps target specific API implementations
+
+3. **Filter Summary**:
+   - Active filters are displayed with clear indicators
+   - Shows exactly which patterns will be tested
+   - Can combine airline and version filters for precise targeting
+
 #### Step 3: Review Results
 
 **Analysis Table**:
-- **Airline**: Source API or "Shared" for team patterns
-- **API Version**: Version information for context
+- **Airline**: Actual airline name (e.g., "American Airlines") or API source
+- **API Version**: Specific version information (e.g., "v2.1", "18.2")
 - **Section**: XML section or XPath where pattern was found
 - **Validation Rule**: Description of what was matched
 - **Verified**: Yes/No indicating if pattern matched
@@ -362,8 +394,15 @@ The Identify module helps you analyze unknown XML files by comparing them agains
 
 **Matched Airlines Display**:
 - Shows airlines with confirmed pattern matches
-- Format: "Airline+Version" (e.g., "LATAM17.2")
+- Format: "Airline+Version" (e.g., "AmericanAirlinesv2.1")
 - Highlighted in yellow for visibility
+
+**Interactive Chatbot**:
+After analysis completes, use the **"🤖 Ask Genie About Results"** button to:
+- Ask questions about the analysis results
+- Get summaries of matched patterns
+- Understand data quality assessments
+- Receive recommendations for next steps
 
 #### Understanding Results
 
@@ -425,9 +464,11 @@ Each pattern shows:
 Workspaces organize your patterns by project, use case, or team structure.
 
 ### Workspace Selection
-- **Sidebar Selector**: Choose active workspace
+- **Sidebar Selector**: Choose active workspace from "🎯 Workspace Selection"
 - **Blank Default**: No workspace selected on startup
 - **Context Switching**: Easy switching between projects
+- **Enhanced Management**: Color-coded Add (green) and Delete (red) workspace buttons
+- **Import/Export**: Pattern import/export functionality in Discovery page management tabs
 
 ### Creating Workspaces
 Workspaces are created automatically when:

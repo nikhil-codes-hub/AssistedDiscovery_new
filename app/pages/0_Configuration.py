@@ -33,7 +33,7 @@ def load_css():
         st.markdown("""
         <style>
         .hero-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             padding: 2rem;
             border-radius: 10px;
             margin-bottom: 2rem;
@@ -56,7 +56,7 @@ def load_css():
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #1e40af;
         }
         .status-card {
             padding: 1rem;
@@ -135,7 +135,7 @@ def main():
         # Save button
         col_save, col_space = st.columns([1, 3])
         with col_save:
-            save_clicked = st.form_submit_button("💾 Save Configuration", type="primary", use_container_width=True)
+            save_clicked = st.form_submit_button("💾 Save Configuration", type="secondary", use_container_width=True)
         
         if save_clicked:
             if not azure_key or not azure_endpoint:

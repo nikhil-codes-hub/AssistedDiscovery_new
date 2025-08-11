@@ -1741,7 +1741,7 @@ div[data-testid="stMultiSelect"] * {
 
 /* Beautiful Professional Banner */
 .hero-banner {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
     border-radius: 12px;
     padding: 1.5rem 2rem;
     margin: 0.5rem 0;

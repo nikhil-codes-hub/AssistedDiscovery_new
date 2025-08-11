@@ -464,61 +464,6 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
             else:
                 st.info("🔍 **No relationships found** between the selected nodes.")
         
-        # Pattern Extraction Suggestions Section
-        if "pattern_extraction_suggestions" in st.session_state.insights:
-            suggestions = st.session_state.insights["pattern_extraction_suggestions"]
-            if suggestions and len(suggestions) > 0:
-                st.markdown("---")
-                
-                # Group suggestions by priority first to determine expander title
-                required_suggestions = []
-                optional_suggestions = []
-                
-                # Handle both new format (with priority) and old format (just strings)
-                for suggestion in suggestions:
-                    if isinstance(suggestion, dict) and 'suggestion' in suggestion:
-                        # New format with priority
-                        if suggestion.get('priority') == "REQUIRED":
-                            required_suggestions.append(suggestion['suggestion'])
-                        else:  # OPTIONAL or any other value
-                            optional_suggestions.append(suggestion['suggestion'])
-                    else:
-                        # Old format (just a string)
-                        optional_suggestions.append(suggestion)
-                
-                # Create expander title with summary
-                total_suggestions = len(required_suggestions) + len(optional_suggestions)
-                priority_indicator = "🎯" if required_suggestions else "🔍"
-                expander_title = f"💡 **Genie Pattern Extraction Recommendations** ({total_suggestions} suggestions)"
-                
-                with st.expander(expander_title, expanded=False):
-                    # Display required suggestions
-                    if required_suggestions:
-                        st.markdown("**🎯 High Priority Recommendations:**")
-                        for i, suggestion in enumerate(required_suggestions, 1):
-                            st.markdown(f"""
-                            <div style="padding: 0.75rem; margin: 0.5rem 0; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.1)); border-radius: 8px; border-left: 4px solid #ef4444;">
-                                <strong>{i}.</strong> {suggestion}
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    # Display optional suggestions
-                    if optional_suggestions:
-                        st.markdown("**🔍 Additional Suggestions:**")
-                        for i, suggestion in enumerate(optional_suggestions, 1):
-                            st.markdown(f"""
-                            <div style="padding: 0.75rem; margin: 0.5rem 0; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1)); border-radius: 8px; border-left: 4px solid #3b82f6;">
-                                <strong>{i}.</strong> {suggestion}
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    # Legend
-                    if required_suggestions and optional_suggestions:
-                        st.markdown("""
-                        <div style="margin-top: 1rem; padding: 0.5rem; background: #f9fafb; border-radius: 6px; font-size: 0.875rem; color: #6b7280;">
-                            <strong>Legend:</strong> 🎯 <em>High Priority</em> - Critical patterns that should be extracted | 🔍 <em>Additional</em> - Optional patterns for comprehensive analysis
-                        </div>
-                        """, unsafe_allow_html=True)
         
     def display_patterns(self):
         try:
@@ -661,7 +606,7 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
         # Bulk actions
         if patterns_to_show:
             st.markdown("---")
-            bulk_col1, bulk_col2, bulk_col3 = st.columns(3)
+            bulk_col1, bulk_col2 = st.columns(2)
             
             with bulk_col1:
                 if st.button(f"➕ Add All to Workspace", key="add_all_default"):
@@ -670,25 +615,7 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                     st.rerun()
             
             with bulk_col2:
-                if st.button("📤 Export Patterns", key="export_default"):
-                    try:
-                        file_path = self.default_patterns_manager.export_patterns()
-                        st.success(f"Exported patterns to {file_path}")
-                    except Exception as e:
-                        st.error(f"Export failed: {e}")
-            
-            with bulk_col3:
-                uploaded_file = st.file_uploader("📥 Import Patterns", type=['json'], key="import_default")
-                if uploaded_file:
-                    try:
-                        import tempfile
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as tmp_file:
-                            tmp_file.write(uploaded_file.read())
-                            count = self.default_patterns_manager.import_patterns(tmp_file.name)
-                            st.success(f"Imported {count} patterns!")
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"Import failed: {e}")
+                st.info("💡 **Tip**: Use the management tabs to import/export patterns")
     
     def _display_extracted_patterns_tab(self, extracted_patterns):
         """Display extracted patterns from current session"""
@@ -802,7 +729,6 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                 values_dict['name'],
                 values_dict['path'],
                 values_dict['description'],
-                values_dict['prompt'],
                 values_dict['example']
             ])
 
@@ -818,12 +744,12 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
             
             st.markdown("")
             
-            df = pd.DataFrame(data, columns=['Name', 'XPATH', 'Description', 'Prompt', 'Example'])
+            df = pd.DataFrame(data, columns=['Name', 'XPATH', 'Description', 'Example'])
             
             
             from core.common.css_utils import get_css_path
             css_path = get_css_path()
-            render_custom_table(df, long_text_cols=['XPATH', 'Description', 'Prompt', 'Example'], css_rel_path=css_path)
+            render_custom_table(df, long_text_cols=['XPATH', 'Description', 'Example'], css_rel_path=css_path)
             
             
             # Pattern management actions below the table
@@ -975,6 +901,184 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
         if len(list(node)) == 0:
             return 1
         return 1 + max(self._get_max_depth(child) for child in node)
+    
+    def _analyze_pattern_relationships(self, patterns):
+        """
+        Analyze extracted patterns to categorize them as individual or linked.
+        Returns a summary with counts and categorization.
+        """
+        if not patterns:
+            return {"total": 0, "individual": 0, "linked": 0, "individual_patterns": [], "linked_patterns": []}
+        
+        individual_patterns = []
+        linked_patterns = []
+        
+        # Convert patterns to a list for easier analysis
+        pattern_list = []
+        for pattern_key, pattern_data in patterns.items():
+            if isinstance(pattern_data, list):
+                # Old format
+                pattern_info = {
+                    'key': pattern_key,
+                    'name': pattern_data[0] if len(pattern_data) > 0 else 'Unknown',
+                    'path': pattern_key,
+                    'description': pattern_data[1] if len(pattern_data) > 1 else ''
+                }
+            else:
+                # New format
+                pattern_info = {
+                    'key': pattern_key,
+                    'name': pattern_data.get('name', 'Unknown'),
+                    'path': pattern_data.get('path', pattern_key),
+                    'description': pattern_data.get('description', '')
+                }
+            pattern_list.append(pattern_info)
+        
+        # Analyze relationships between patterns
+        for i, pattern in enumerate(pattern_list):
+            is_linked = False
+            
+            # Check if this pattern is related to any other pattern
+            for j, other_pattern in enumerate(pattern_list):
+                if i != j:
+                    # Check for path relationships (parent/child or sibling)
+                    if self._are_patterns_linked(pattern, other_pattern):
+                        is_linked = True
+                        break
+            
+            if is_linked:
+                linked_patterns.append(pattern)
+            else:
+                individual_patterns.append(pattern)
+        
+        return {
+            "total": len(pattern_list),
+            "individual": len(individual_patterns),
+            "linked": len(linked_patterns),
+            "individual_patterns": individual_patterns,
+            "linked_patterns": linked_patterns
+        }
+    
+    def _are_patterns_linked(self, pattern1, pattern2):
+        """
+        Determine if two patterns are linked based on their paths and descriptions.
+        """
+        path1 = pattern1['path'].lower()
+        path2 = pattern2['path'].lower()
+        desc1 = pattern1['description'].lower()
+        desc2 = pattern2['description'].lower()
+        
+        # Check if paths suggest hierarchy (parent/child relationship)
+        if path1 in path2 or path2 in path1:
+            return True
+        
+        # Check if paths share common parent elements
+        path1_parts = path1.split('/')
+        path2_parts = path2.split('/')
+        
+        # If they share multiple path components, they might be related
+        common_parts = set(path1_parts) & set(path2_parts)
+        if len(common_parts) >= 2:  # At least 2 common path elements
+            return True
+        
+        # Check for semantic relationships in descriptions
+        # Look for common keywords that suggest relationships
+        relationship_keywords = ['passenger', 'flight', 'booking', 'fare', 'segment', 'itinerary']
+        
+        desc1_keywords = set(desc1.split()) & set(relationship_keywords)
+        desc2_keywords = set(desc2.split()) & set(relationship_keywords)
+        
+        # If they share domain-specific keywords, they might be related
+        if desc1_keywords & desc2_keywords:
+            return True
+        
+        return False
+    
+    def _display_pattern_extraction_summary(self, patterns):
+        """
+        Display a summary of extracted patterns with individual/linked categorization.
+        """
+        analysis = self._analyze_pattern_relationships(patterns)
+        
+        if analysis["total"] == 0:
+            return
+        
+        # Create an attractive summary box
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #22c55e;
+        ">
+            <h4 style="margin: 0 0 1rem 0; color: #065f46; display: flex; align-items: center;">
+                🎯 Pattern Extraction Summary
+            </h4>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Display metrics in columns
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric(
+                "📊 Total Patterns",
+                analysis["total"],
+                help="Total number of patterns extracted from the XML"
+            )
+        
+        with col2:
+            st.metric(
+                "🔲 Individual Patterns",
+                analysis["individual"],
+                help="Standalone patterns with no direct relationships to other patterns"
+            )
+        
+        with col3:
+            st.metric(
+                "🔗 Linked Patterns",
+                analysis["linked"],
+                help="Patterns that are related to other patterns through hierarchy or semantics"
+            )
+        
+        # Detailed breakdown with collapsible sections using details/summary
+        if analysis["individual"] > 0:
+            st.markdown("### 🔲 Individual Patterns")
+            st.markdown("**These patterns are standalone and don't have direct relationships with other extracted patterns:**")
+            
+            # Use columns to create a compact view
+            for i, pattern in enumerate(analysis["individual_patterns"], 1):
+                with st.container():
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        st.markdown(f"**{i}.**")
+                    with col2:
+                        st.markdown(f"`{pattern['name']}` - *{pattern['path']}*")
+                        if pattern['description']:
+                            st.markdown(f"📝 {pattern['description'][:100]}{'...' if len(pattern['description']) > 100 else ''}")
+                    st.markdown("---")
+        
+        if analysis["linked"] > 0:
+            st.markdown("### 🔗 Linked Patterns")
+            st.markdown("**These patterns are related to other patterns through hierarchical or semantic relationships:**")
+            
+            # Use columns to create a compact view
+            for i, pattern in enumerate(analysis["linked_patterns"], 1):
+                with st.container():
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        st.markdown(f"**{i}.**")
+                    with col2:
+                        st.markdown(f"`{pattern['name']}` - *{pattern['path']}*")
+                        if pattern['description']:
+                            st.markdown(f"📝 {pattern['description'][:100]}{'...' if len(pattern['description']) > 100 else ''}")
+                    st.markdown("---")
+        
+        # Add helpful tip
+        st.info("💡 **Tip:** Linked patterns often represent related data elements (like passenger details and flight segments) while individual patterns are typically standalone elements.")
+        
+        st.markdown("---")
     
     def _add_default_patterns_to_session(self, patterns: list):
         """Add default patterns to the current session"""

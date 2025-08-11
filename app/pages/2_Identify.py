@@ -20,6 +20,11 @@ from core.common.ui_utils import render_custom_table
 from core.common.constants import GPT_4O
 from core.assisted_discovery.identify_pattern_manager import PatternIdentifyManager
 from core.common.cost_display_manager import CostDisplayManager
+
+# Force reload of PatternIdentifyManager to ensure latest version
+import importlib
+import core.assisted_discovery.identify_pattern_manager as ipm_module
+importlib.reload(ipm_module)
 # from core.common.api_key_manager import APIKeyManager  # Temporarily disabled for demo
 from core.common.logging_manager import (
     get_logger, log_user_action, log_error, log_streamlit_error, log_performance, 
@@ -42,7 +47,7 @@ class EnhancedIdentifyPatternsPage:
     def __init__(self):
         # self._api_manager = APIKeyManager()  # Temporarily disabled for demo
         self._usecase_manager = UseCaseManager()
-        self._pattern_identify_manager = PatternIdentifyManager(GPT_4O)
+        self._pattern_identify_manager = ipm_module.PatternIdentifyManager(GPT_4O)
         self._cost_display_manager = CostDisplayManager()
         self.db_utils = None  # Will be set based on selected use case
 
@@ -70,8 +75,8 @@ class EnhancedIdentifyPatternsPage:
         
         # Sidebar - always render first
         with st.sidebar:
-            # Discovery Workspace Selection
-            st.markdown("### 🎯 Discovery Workspace Selection")
+            # Workspace Selection
+            st.markdown("### 🎯 Workspace Selection")
             selected_use_case = self._usecase_manager.render_use_case_selector("identify_use_case")
             
             st.markdown("---")
@@ -79,13 +84,32 @@ class EnhancedIdentifyPatternsPage:
             # Cost metrics
             self._cost_display_manager.render_cost_metrics()
         
-        # Professional header
+        # Enhanced Professional header with blue company theme
         st.markdown("""
-        <div class="hero-banner">
+        <div class="hero-banner" style="
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 2rem;
+            margin: 1rem 0;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        ">
             <div class="hero-content">
-                <h1 class="hero-title">📊 Pattern Identification Studio</h1>
-                <p class="hero-subtitle">
-                    🎯 Identify and analyze XML patterns using Genie recognition
+                <h1 class="hero-title" style="
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                    margin: 0 0 1rem 0;
+                    color: white;
+                ">📊 AssistedDiscovery - Pattern Identification Studio</h1>
+                <p class="hero-subtitle" style="
+                    font-size: 1.25rem;
+                    margin: 0;
+                    opacity: 0.95;
+                    font-weight: 500;
+                ">
+                    🎯 Identify and analyze XML patterns using AI-powered Genie recognition
                 </p>
             </div>
         </div>
@@ -105,7 +129,7 @@ class EnhancedIdentifyPatternsPage:
             
         # Update pattern identify manager with use case specific database
         if not hasattr(self._pattern_identify_manager, 'db_utils') or self._pattern_identify_manager.db_utils != self.db_utils:
-            self._pattern_identify_manager = PatternIdentifyManager(GPT_4O, self.db_utils)
+            self._pattern_identify_manager = ipm_module.PatternIdentifyManager(GPT_4O, self.db_utils)
 
         # Enhanced premium tabs
         st.markdown('<div class="premium-tabs"></div>', unsafe_allow_html=True)
@@ -135,21 +159,6 @@ class EnhancedIdentifyPatternsPage:
         )
 
         if unknown_source_xml:
-            # File info display
-            st.success("File Ready for Analysis")
-            
-            # File metrics
-            col1, col2, col3 = st.columns(3)
-            
-            file_name = unknown_source_xml.name[:20] + "..." if len(unknown_source_xml.name) > 20 else unknown_source_xml.name
-            file_size = f"{unknown_source_xml.size / 1024:.1f} KB"
-            
-            with col1:
-                st.metric("File Name", file_name)
-            with col2:
-                st.metric("File Size", file_size)
-            with col3:
-                st.metric("Analysis Status", "Ready")
 
             # Check workspace status before analysis
             workspace_patterns_count = len(self.db_utils.get_all_patterns()) if self.db_utils else 0
@@ -170,6 +179,49 @@ class EnhancedIdentifyPatternsPage:
                 Pattern identification requires existing patterns to compare against. 
                 Please save some patterns from the Discovery page first.
                 """)
+            
+            # Pattern Filtering Section
+            if total_patterns > 0:
+                st.markdown("#### 🎯 Pattern Selection Filters")
+                st.markdown("Choose specific airlines and API versions to test against (optional)")
+                
+                # Get available airlines and versions from patterns
+                available_airlines, available_versions = self._get_available_airlines_and_versions()
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    selected_airlines = st.multiselect(
+                        "Select Airlines",
+                        options=["All Airlines"] + available_airlines,
+                        default=["All Airlines"],
+                        help="Choose specific airlines to test patterns against. Leave 'All Airlines' selected to test all patterns."
+                    )
+                
+                with col2:
+                    selected_versions = st.multiselect(
+                        "Select API Versions", 
+                        options=["All Versions"] + available_versions,
+                        default=["All Versions"],
+                        help="Choose specific API versions to test. Leave 'All Versions' selected to test all versions."
+                    )
+                
+                # Process selections
+                airline_filter = None if "All Airlines" in selected_airlines else selected_airlines
+                version_filter = None if "All Versions" in selected_versions else selected_versions
+                
+                # Show filter summary
+                if airline_filter or version_filter:
+                    filter_summary = []
+                    if airline_filter:
+                        filter_summary.append(f"Airlines: {', '.join(airline_filter)}")
+                    if version_filter:
+                        filter_summary.append(f"Versions: {', '.join(version_filter)}")
+                    st.info(f"🎯 **Active Filters:** {' | '.join(filter_summary)}")
+                else:
+                    st.info("🌐 **Testing against all available patterns**")
+                
+                st.markdown("---")
             
             # Analysis section
             st.markdown("#### Genie Pattern Analysis")
@@ -204,6 +256,9 @@ class EnhancedIdentifyPatternsPage:
                 else:
                     st.info("Upload XML first")
             
+            # Initialize XML content variable
+            unknown_source_xml_content = None
+            
             if analysis_clicked:
                     
                     with st.status("**Analyzing XML Patterns...**", expanded=True) as status:
@@ -211,14 +266,18 @@ class EnhancedIdentifyPatternsPage:
                         
                         unknown_source_xml_content = unknown_source_xml.read().decode("utf-8")
                         
+                        # Apply filters if specified
+                        filter_info = {"airlines": airline_filter, "versions": version_filter} if total_patterns > 0 else {"airlines": None, "versions": None}
+                        
                         st.write("Genie is analyzing patterns...")
-                        analysis = self._pattern_identify_manager.verify_and_confirm_airline(unknown_source_xml_content, None)
+                        analysis = self._pattern_identify_manager.verify_and_confirm_airline(unknown_source_xml_content, filter_info)
                         
                         if analysis:
                             status.update(label="**Analysis Complete!**", state="complete")
                             
-                            # Store analysis in session state for display outside status block
+                            # Store analysis and XML content in session state for display outside status block
                             st.session_state.current_analysis = analysis
+                            st.session_state.current_xml_content = unknown_source_xml_content
                         else:
                             status.update(label="**Analysis Issues**", state="error")
                             st.warning("Unable to complete pattern analysis. Please check your XML file.")
@@ -239,6 +298,12 @@ class EnhancedIdentifyPatternsPage:
                     self._pattern_identify_manager.display_api_analysis(st.session_state.current_analysis)
                 else:
                     st.success(f"**Analysis Complete:** {st.session_state.current_analysis}")
+                
+                # Get XML content from session state (with fallback)
+                xml_content = getattr(st.session_state, 'current_xml_content', None)
+                
+                # Add floating chatbot dialog
+                self._render_floating_chatbot(st.session_state.current_analysis, xml_content)
 
         else:
             # Premium empty state
@@ -436,6 +501,686 @@ class EnhancedIdentifyPatternsPage:
                 main_element = parts[-1] if parts[-1] else (parts[-2] if len(parts) > 1 else "Unknown")
                 return main_element.replace('_', ' ').title()
             return "Custom"
+    
+    def _get_available_airlines_and_versions(self):
+        """Get available airlines and API versions from workspace and shared patterns"""
+        airlines = set()
+        versions = set()
+        
+        try:
+            # Get workspace patterns
+            if self.db_utils:
+                workspace_patterns = self.db_utils.get_all_patterns()
+                for pattern in workspace_patterns:
+                    if hasattr(pattern, 'airline') and pattern.airline:
+                        airlines.add(pattern.airline)
+                    if hasattr(pattern, 'api_version') and pattern.api_version:
+                        versions.add(pattern.api_version)
+            
+            # Get shared patterns
+            from core.database.default_patterns_manager import DefaultPatternsManager
+            default_patterns_manager = DefaultPatternsManager()
+            shared_patterns = default_patterns_manager.get_all_patterns()
+            
+            for pattern in shared_patterns:
+                if pattern.api and pattern.api != "Shared":
+                    airlines.add(pattern.api)
+                if pattern.api_version and pattern.api_version != "N/A":
+                    versions.add(pattern.api_version)
+            
+        except Exception as e:
+            st.error(f"Error loading pattern options: {e}")
+            
+        # Convert to sorted lists, removing empty values
+        airlines_list = sorted([a for a in airlines if a and a.strip()])
+        versions_list = sorted([v for v in versions if v and v.strip()])
+        
+        return airlines_list, versions_list
+    
+    def _render_floating_chatbot(self, analysis_results, xml_content):
+        """Render floating chatbot dialog in bottom right corner - DISABLED, using Streamlit fallback"""
+        
+        # Initialize chat state
+        if 'chatbot_messages' not in st.session_state:
+            st.session_state.chatbot_messages = []
+        if 'chatbot_open' not in st.session_state:
+            st.session_state.chatbot_open = False
+        
+        # Use Streamlit fallback instead of floating dialog to avoid HTML rendering issues
+        self._handle_streamlit_chat_logic(analysis_results, xml_content)
+        return
+        
+        # Floating chat CSS and HTML
+        st.markdown("""
+        <style>
+        .floating-chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            width: 250px;
+            height: 70px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 40px rgba(139, 69, 19, 0.5);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .floating-chat-toggle:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 50px rgba(139, 69, 19, 0.6);
+            background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .floating-chat-toggle:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+        
+        .floating-chat-toggle::before {
+            content: '🤖';
+            font-size: 24px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        .floating-chat-dialog {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 400px;
+            max-width: 90vw;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            background: #f9fafb;
+            max-height: 350px;
+            min-height: 200px;
+            scroll-behavior: smooth;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .chat-input-area {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        .user-message {
+            background: #e0f2fe;
+            color: #0f172a;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 12px 0;
+            margin-left: 2rem;
+            font-size: 14px;
+            border-left: 3px solid #0ea5e9;
+        }
+        
+        .bot-message {
+            background: #f0f9ff;
+            color: #1e293b;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 12px 0;
+            margin-right: 2rem;
+            border-left: 3px solid #0ea5e9;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .message-label {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .user-label {
+            color: #0369a1;
+        }
+        
+        .bot-label {
+            color: #0369a1;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        
+        .quick-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:hover {
+            background: #e5e7eb;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Chat toggle button
+        chat_toggle_html = f"""
+        <button class="floating-chat-toggle" onclick="toggleChat()" id="chatToggle">
+            Ask Genie About Results
+        </button>
+        """
+        
+        # Chat dialog HTML
+        chat_dialog_html = f"""
+        <div class="floating-chat-dialog" id="chatDialog" style="display: {'block' if st.session_state.chatbot_open else 'none'};">
+            <div class="chat-header">
+                <span>🤖 Ask Genie About Results</span>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                {self._render_chat_messages()}
+            </div>
+            <div class="chat-input-area">
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="askQuickQuestion('Analysis summary?')">Summary</button>
+                    <button class="quick-btn" onclick="askQuickQuestion('Data quality?')">Quality</button>
+                </div>
+            </div>
+        </div>
+        """
+        
+        # JavaScript for chat functionality
+        chat_js = """
+        <script>
+        function toggleChat() {
+            const dialog = document.getElementById('chatDialog');
+            const isVisible = dialog.style.display !== 'none';
+            dialog.style.display = isVisible ? 'none' : 'block';
+            
+            // Scroll to bottom when opening chat
+            if (!isVisible) {
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 100);
+            }
+            
+            // Update Streamlit session state
+            window.parent.postMessage({
+                type: 'streamlit:setComponentValue',
+                key: 'chatbot_open',
+                value: !isVisible
+            }, '*');
+        }
+        
+        function askQuickQuestion(question) {
+            // Send quick question to Streamlit
+            window.parent.postMessage({
+                type: 'streamlit:setComponentValue', 
+                key: 'quick_question_asked',
+                value: question
+            }, '*');
+            
+            // Scroll to bottom after asking question
+            setTimeout(() => {
+                scrollToBottom();
+            }, 500);
+        }
+        
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        
+        // Auto-scroll to bottom when new messages are added
+        function observeMessages() {
+            const chatMessages = document.getElementById('chatMessages');
+            if (chatMessages) {
+                const observer = new MutationObserver(() => {
+                    scrollToBottom();
+                });
+                observer.observe(chatMessages, { childList: true, subtree: true });
+            }
+        }
+        
+        // Initialize message observer when dialog is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            observeMessages();
+        });
+        
+        // Also initialize after a short delay for dynamic content
+        setTimeout(() => {
+            observeMessages();
+        }, 1000);
+        </script>
+        """
+        
+        # Render the floating chat
+        st.components.v1.html(
+            chat_toggle_html + chat_dialog_html + chat_js,
+            height=0,
+            scrolling=False
+        )
+        
+        # Handle Streamlit-based chat functionality
+        self._handle_streamlit_chat_logic(analysis_results, xml_content)
+    
+    def _render_chat_messages(self):
+        """Render chat messages as HTML with improved styling"""
+        messages_html = ""
+        for message in st.session_state.chatbot_messages:
+            if message["role"] == "user":
+                # Escape HTML in user messages to prevent issues
+                content = message["content"].replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br>')
+                messages_html += f'''
+                <div class="user-message">
+                    <span class="message-label user-label">You:</span>
+                    {content}
+                </div>
+                '''
+            else:
+                # For bot messages, convert markdown-style formatting to HTML but escape dangerous HTML
+                content = message["content"]
+                # Convert **bold** to <strong> using regex for proper pairing
+                import re
+                content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', content)
+                # Convert line breaks
+                content = content.replace('\n', '<br>')
+                # Only escape dangerous HTML tags, not formatting ones
+                content = re.sub(r'<script[^>]*>.*?</script>', '', content, flags=re.IGNORECASE | re.DOTALL)
+                content = re.sub(r'<iframe[^>]*>.*?</iframe>', '', content, flags=re.IGNORECASE | re.DOTALL)
+                # Remove div tags and other HTML elements that should not be displayed as raw HTML
+                content = re.sub(r'<div[^>]*>', '', content, flags=re.IGNORECASE)
+                content = re.sub(r'</div>', '', content, flags=re.IGNORECASE)
+                content = re.sub(r'<h[1-6][^>]*>', '', content, flags=re.IGNORECASE)
+                content = re.sub(r'</h[1-6]>', '', content, flags=re.IGNORECASE)
+                content = re.sub(r'<p[^>]*>', '', content, flags=re.IGNORECASE)
+                content = re.sub(r'</p>', '', content, flags=re.IGNORECASE)
+                # Remove any remaining unmatched ** or other problematic characters
+                content = content.replace('**', '')
+                
+                messages_html += f'''
+                <div class="bot-message">
+                    <span class="message-label bot-label">🤖 Genie:</span>
+                    {content}
+                </div>
+                '''
+        
+        if not st.session_state.chatbot_messages:
+            messages_html = '''
+            <div style="text-align: center; color: #6b7280; padding: 30px; font-style: italic;">
+                <div style="font-size: 24px; margin-bottom: 10px;">💬</div>
+                Start a conversation by clicking a quick action button or asking your own question!
+            </div>
+            '''
+        
+        return messages_html
+    
+    def _handle_streamlit_chat_logic(self, analysis_results, xml_content):
+        """Handle chat logic using Streamlit components"""
+        
+        # Enhanced prominent chat toggle button
+        st.markdown("""
+        <style>
+        .chat-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .elegant-chat-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 280px;
+            justify-content: center;
+        }
+        .elegant-chat-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .chat-icon {
+            font-size: 1.5rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Center the chat toggle button
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🤖 Ask Genie About Results", key="chat_toggle_btn", help="Open intelligent chat to discuss analysis results", use_container_width=True):
+                st.session_state.chatbot_open = not st.session_state.get('chatbot_open', False)
+        
+        # Show chat interface when open
+        if st.session_state.get('chatbot_open', False):
+            with st.container():
+                st.markdown("### 🤖 Chat with Genie")
+                
+                # Quick action buttons
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("Summary", key="q_summary", use_container_width=True):
+                        st.session_state.quick_question = "Analysis summary?"
+                
+                with col2:
+                    if st.button("Quality", key="q_quality", use_container_width=True):
+                        st.session_state.quick_question = "Data quality?"
+                
+                # Chat messages display using native Streamlit components (no HTML)
+                if st.session_state.chatbot_messages:
+                    # Create a container for messages with custom styling
+                    with st.container():
+                        st.markdown("**💬 Conversation History:**")
+                        
+                        # Display messages using native Streamlit components
+                        for i, message in enumerate(st.session_state.chatbot_messages):
+                            if message["role"] == "user":
+                                # User message
+                                with st.container():
+                                    st.markdown(f"**You:** {message['content']}")
+                            else:
+                                # Bot message - clean the content first
+                                content = message['content']
+                                # Remove any HTML tags that might be in the content
+                                import re
+                                content = re.sub(r'<[^>]+>', '', content)
+                                # Convert **bold** to Streamlit markdown
+                                # Keep **bold** as is since Streamlit handles it natively
+                                
+                                with st.container():
+                                    st.markdown(f"**🤖 Genie:** {content}")
+                            
+                            # Add separator between messages
+                            if i < len(st.session_state.chatbot_messages) - 1:
+                                st.markdown("---")
+                else:
+                    st.info("💬 No messages yet. Start a conversation by clicking a quick action or asking a question!")
+                
+                # Chat input
+                chat_input = st.text_input("Ask a question:", key="chat_input", placeholder="e.g., Which airlines were found?")
+                
+                col1, col2, col3 = st.columns([1, 1, 2])
+                
+                with col1:
+                    if st.button("Send", key="send_chat"):
+                        if chat_input:
+                            st.session_state.quick_question = chat_input
+                
+                with col2:
+                    if st.button("Clear", key="clear_chat"):
+                        st.session_state.chatbot_messages = []
+                        st.rerun()
+                
+                with col3:
+                    if st.button("Close Chat", key="close_chat"):
+                        st.session_state.chatbot_open = False
+                        st.rerun()
+        
+        # Process quick questions
+        if hasattr(st.session_state, 'quick_question'):
+            question = st.session_state.quick_question
+            del st.session_state.quick_question
+            
+            # Add user message
+            st.session_state.chatbot_messages.append({"role": "user", "content": question})
+            
+            # Generate response
+            response = self._generate_chatbot_response(question, analysis_results, xml_content)
+            st.session_state.chatbot_messages.append({"role": "bot", "content": response})
+            
+            st.rerun()
+    
+    def _generate_chatbot_response(self, question, analysis_results, xml_content):
+        """Generate chatbot response based on the question and analysis results"""
+        try:
+            # Prepare context for the chatbot
+            context = {
+                "question": question,
+                "analysis_results": str(analysis_results)[:2000],  # Limit context size
+                "xml_sample": xml_content[:1000] if xml_content else "No XML content available"  # First 1000 chars
+            }
+            
+            # Use the pattern identify manager to generate a contextual response
+            if self._pattern_identify_manager:
+                response = self._pattern_identify_manager.generate_chatbot_response(
+                    question, 
+                    analysis_results, 
+                    xml_content
+                )
+                
+                if response:
+                    return response
+            
+            # Fallback response generation based on question analysis
+            return self._generate_fallback_response(question, analysis_results, xml_content)
+            
+        except Exception as e:
+            return f"I apologize, but I encountered an error while processing your question: {str(e)}. Please try rephrasing your question or contact support if the issue persists."
+    
+    def _generate_fallback_response(self, question, analysis_results, xml_content):
+        """Generate a fallback response when the main chatbot fails"""
+        question_lower = question.lower()
+        
+        # Airline-related questions
+        if any(word in question_lower for word in ['airline', 'carrier', 'airlines', 'matched']):
+            return self._analyze_airlines_in_results(analysis_results)
+        
+        # Pattern-related questions
+        elif any(word in question_lower for word in ['pattern', 'patterns', 'found', 'identified']):
+            return self._analyze_patterns_in_results(analysis_results)
+        
+        # Summary questions
+        elif any(word in question_lower for word in ['summary', 'overview', 'results']):
+            return self._generate_summary_response(analysis_results)
+        
+        # Data quality questions
+        elif any(word in question_lower for word in ['quality', 'complete', 'missing', 'data']):
+            return self._analyze_data_quality(analysis_results, xml_content)
+        
+        # Default response
+        else:
+            return f"""I understand you're asking: "{question}"
+
+Based on the analysis results available, I can help you with:
+- Information about airlines and carriers identified
+- Details about patterns that were matched
+- Summary of the analysis results
+- Data quality and completeness assessment
+
+Could you please rephrase your question to be more specific about what aspect of the results you'd like to know about?"""
+
+    def _analyze_airlines_in_results(self, analysis_results):
+        """Analyze and return information about airlines in the results"""
+        try:
+            result_str = str(analysis_results).lower()
+            
+            # Look for common airline indicators
+            airlines_found = []
+            
+            # Common airline codes and names to search for
+            airline_indicators = [
+                'american', 'delta', 'united', 'southwest', 'jetblue', 
+                'alaska', 'spirit', 'frontier', 'hawaiian', 'allegiant',
+                'lufthansa', 'british airways', 'air france', 'klm',
+                'aa', 'dl', 'ua', 'wn', 'b6', 'as', 'nk', 'f9', 'ha', 'g4'
+            ]
+            
+            for indicator in airline_indicators:
+                if indicator in result_str:
+                    airlines_found.append(indicator.upper())
+            
+            if airlines_found:
+                unique_airlines = list(set(airlines_found))
+                return f"Based on the analysis results, I found references to these airlines: {', '.join(unique_airlines)}. The pattern matching identified these carriers in your XML data."
+            else:
+                return "I couldn't identify specific airline names or codes in the current analysis results. The patterns may have matched structural elements rather than specific airline identifiers. You might want to check if your XML contains airline codes or carrier information in the raw data."
+                
+        except Exception as e:
+            return f"I encountered an issue analyzing airline information: {str(e)}"
+
+    def _analyze_patterns_in_results(self, analysis_results):
+        """Analyze and return information about patterns in the results"""
+        try:
+            if isinstance(analysis_results, dict):
+                pattern_count = len(analysis_results.get('matches', []))
+                return f"The analysis found {pattern_count} pattern matches in your XML. These patterns represent different structural elements and data points that were successfully identified and categorized."
+            else:
+                return f"Pattern analysis completed. The results show various structural patterns were identified in your XML data: {str(analysis_results)[:200]}..."
+                
+        except Exception as e:
+            return f"I encountered an issue analyzing pattern information: {str(e)}"
+
+    def _generate_summary_response(self, analysis_results):
+        """Generate a summary of the analysis results"""
+        try:
+            return f"""Here's a summary of your XML analysis:
+
+📊 **Analysis Overview:**
+The pattern identification process has completed and analyzed your XML structure against the available pattern library.
+
+🎯 **Key Findings:**
+{str(analysis_results)[:300]}...
+
+💡 **Next Steps:**
+- Review the detailed results above
+- Check which patterns matched successfully  
+- Consider saving successful patterns to your library
+- Use the identified patterns for future XML processing
+
+Would you like me to elaborate on any specific aspect of these results?"""
+            
+        except Exception as e:
+            return f"I encountered an issue generating the summary: {str(e)}"
+
+    def _analyze_data_quality(self, analysis_results, xml_content):
+        """Analyze data quality and completeness"""
+        try:
+            xml_size = len(xml_content) if xml_content else 0
+            
+            quality_indicators = []
+            
+            if xml_size > 1000:
+                quality_indicators.append("✅ Good data volume")
+            elif xml_size > 500:
+                quality_indicators.append("⚠️ Moderate data volume")
+            else:
+                quality_indicators.append("❌ Limited data volume")
+            
+            # Check for common completeness indicators
+            if xml_content and any(tag in xml_content.lower() for tag in ['<passenger', '<flight', '<booking']):
+                quality_indicators.append("✅ Contains key business entities")
+            
+            return f"""**Data Quality Assessment:**
+
+📈 **Quality Indicators:**
+{chr(10).join(quality_indicators)}
+
+📊 **Analysis Results Quality:**
+The pattern matching process completed and provided structured results. The quality of matches depends on how well your XML structure aligns with the saved patterns in your library.
+
+💡 **Recommendations:**
+- Ensure your XML follows standard airline industry formats
+- Consider adding more patterns to your library for better coverage
+- Review any unmatched sections for potential new pattern opportunities"""
+            
+        except Exception as e:
+            return f"I encountered an issue analyzing data quality: {str(e)}"
     
     # API key configuration method temporarily disabled for demo
     # def _render_api_key_required(self):

@@ -68,9 +68,9 @@ REM Create launcher script
 echo 📝 Creating launcher script...
 echo @echo off > portable_dist\run_assisted_discovery.bat
 echo echo 🧞 Starting Assisted Discovery... >> portable_dist\run_assisted_discovery.bat
-echo echo 📍 Application will be available at: http://localhost:8501 >> portable_dist\run_gap_analyser.bat
-echo echo 🌐 Opening browser automatically... >> portable_dist\run_gap_analyser.bat
-echo. >> portable_dist\run_gap_analyser.bat
+echo echo 📍 Application will be available at: http://localhost:8501 >> portable_dist\run_assisted_discovery.bat
+echo echo 🌐 Opening browser automatically... >> portable_dist\run_assisted_discovery.bat
+echo. >> portable_dist\run_assisted_discovery.bat
 echo assisted_discovery_env\Scripts\python streamlit_launcher.py >> portable_dist\run_assisted_discovery.bat
 echo pause >> portable_dist\run_assisted_discovery.bat
 

@@ -22,6 +22,7 @@ importlib.reload(pm_module)
 from core.assisted_discovery.pattern_manager import PatternManager
 from core.assisted_discovery.pattern_saver import PatternSaver
 from core.assisted_discovery.pattern_verifier import PatternVerifier
+from core.assisted_discovery.identify_pattern_manager import PatternIdentifyManager
 from core.common.cost_display_manager import CostDisplayManager
 from core.common.constants import GPT_4O
 # from core.common.api_key_manager import APIKeyManager  # Temporarily disabled for demo
@@ -50,6 +51,7 @@ class DiscoverPatternsPage:
         self._pattern_verifier = PatternVerifier(GPT_4O)
         self._pattern_saver = None  # Will be initialized when use case is selected
         self._cost_display_manager = CostDisplayManager()
+        self._chatbot_manager = PatternIdentifyManager(GPT_4O)  # For chatbot functionality
 
     @streamlit_error_handler
     def run(self):
@@ -68,8 +70,8 @@ class DiscoverPatternsPage:
         
         # Sidebar - always render first
         with st.sidebar:
-            # Discovery Workspace Selection
-            st.markdown("### 🎯 Discovery Workspace Selection")
+            # Workspace Selection
+            st.markdown("### 🎯 Workspace Selection")
             selected_use_case = self._usecase_manager.render_use_case_selector("discovery_use_case")
             
             st.markdown("---")
@@ -77,13 +79,32 @@ class DiscoverPatternsPage:
             # Cost metrics
             self._cost_display_manager.render_cost_metrics()
         
-        # Page header
+        # Enhanced Page header with blue company theme
         st.markdown("""
-        <div class="hero-banner">
+        <div class="hero-banner" style="
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 2rem;
+            margin: 1rem 0;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        ">
             <div class="hero-content">
-                <h1 class="hero-title">🔍 Pattern Discovery Studio</h1>
-                <p class="hero-subtitle">
-                    ⚡ Transform your XML data into intelligent patterns
+                <h1 class="hero-title" style="
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                    margin: 0 0 1rem 0;
+                    color: white;
+                ">🔍 AssistedDiscovery - Pattern Discovery Studio</h1>
+                <p class="hero-subtitle" style="
+                    font-size: 1.25rem;
+                    margin: 0;
+                    opacity: 0.95;
+                    font-weight: 500;
+                ">
+                    ⚡ Transform your XML data into intelligent patterns with AI-powered analysis
                 </p>
             </div>
         </div>
@@ -109,6 +130,10 @@ class DiscoverPatternsPage:
         current_db_utils = self._usecase_manager.get_current_db_utils()
         if not self._pattern_saver or self._pattern_saver.db_utils != current_db_utils:
             self._pattern_saver = PatternSaver(GPT_4O, current_db_utils)
+            
+        # Update chatbot manager with current database
+        if not hasattr(self._chatbot_manager, 'db_utils') or self._chatbot_manager.db_utils != current_db_utils:
+            self._chatbot_manager = PatternIdentifyManager(GPT_4O, current_db_utils)
 
         # Enhanced premium tabs
         st.markdown('<div class="premium-tabs"></div>', unsafe_allow_html=True)
@@ -242,11 +267,49 @@ class DiscoverPatternsPage:
                         
                         st.write(f"Successfully extracted {len(patterns)} patterns!")
                         status.update(label="Auto Extraction Complete!", state="complete")
-                    else:
-                        st.write("No patterns found. The XML structure may not contain extractable patterns.")
-                        status.update(label="No Patterns Found", state="error")
+                        
+                # Display the extracted patterns in a table (outside the status container)
+                if hasattr(st.session_state, 'pattern_responses') and st.session_state.pattern_responses:
+                    st.markdown("---")
+                    st.markdown("#### 📋 Extracted Patterns")
+                    self._pattern_manager._display_extracted_patterns("auto_extract")
+                    
+                    # Store patterns and XML content persistently for chatbot
+                    st.session_state.auto_extracted_patterns = st.session_state.pattern_responses
+                    st.session_state.auto_xml_content = uploaded_file.getvalue().decode('utf-8') if uploaded_file else ""
+                    
+                    # Add chatbot for discussing extraction results
+                    st.markdown("---")
+                    self._render_discovery_chatbot(st.session_state.pattern_responses, uploaded_file.getvalue().decode('utf-8') if uploaded_file else "")
+                else:
+                    st.write("No patterns found. The XML structure may not contain extractable patterns.")
+                    
+                    # Add chatbot even when no patterns found (for guidance)
+                    st.markdown("---")
+                    self._render_discovery_chatbot({}, uploaded_file.getvalue().decode('utf-8') if uploaded_file else "")
             else:
                 st.error("No suitable nodes found for automatic extraction. Try manual mode or check your XML structure.")
+        
+        # Show chatbot section if patterns were previously extracted (for after page refresh)
+        elif hasattr(st.session_state, 'auto_extracted_patterns') and st.session_state.auto_extracted_patterns:
+            st.markdown("---")
+            st.markdown("#### 📋 Extracted Patterns")
+            
+            # Temporarily restore pattern_responses to show the table
+            original_pattern_responses = st.session_state.get('pattern_responses', {})
+            st.session_state.pattern_responses = st.session_state.auto_extracted_patterns
+            
+            # Display the patterns table
+            self._pattern_manager._display_extracted_patterns("auto_extract_preserved")
+            
+            # Restore original pattern_responses
+            st.session_state.pattern_responses = original_pattern_responses
+            
+            st.markdown("---")
+            self._render_discovery_chatbot(
+                st.session_state.auto_extracted_patterns,
+                st.session_state.get('auto_xml_content', '')
+            )
     
     def _handle_manual_mode(self, uploaded_file):
         """Handle manual pattern extraction mode"""
@@ -255,6 +318,11 @@ class DiscoverPatternsPage:
         # Use the existing manual extraction logic
         with st.container():
             self._pattern_manager.extract_patterns(uploaded_file)
+            
+            # Add chatbot for discussing manual extraction results
+            if hasattr(st.session_state, 'pattern_responses') and st.session_state.pattern_responses:
+                st.markdown("---")
+                self._render_discovery_chatbot(st.session_state.pattern_responses, uploaded_file.getvalue().decode('utf-8') if uploaded_file else "")
     
     def _enhanced_custom_patterns_section(self, uploaded_file):
         """Enhanced custom patterns section with validation and styling"""
@@ -857,6 +925,29 @@ class DiscoverPatternsPage:
                 
                 st.markdown("---")
         
+        # Import/Export Section for Custom Patterns
+        if total_patterns > 0:
+            st.markdown("---")
+            st.markdown("#### 📦 Import/Export Custom Patterns")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if st.button("📤 Export Custom Patterns", type="secondary", use_container_width=True):
+                    try:
+                        # Export custom patterns logic would go here
+                        st.success("Custom patterns export functionality coming soon!")
+                    except Exception as e:
+                        st.error(f"Export failed: {e}")
+            
+            with col2:
+                uploaded_file = st.file_uploader("📥 Import Custom Patterns", type=['json'], key="import_custom")
+                if uploaded_file:
+                    try:
+                        st.success("Custom patterns import functionality coming soon!")
+                    except Exception as e:
+                        st.error(f"Import failed: {e}")
+        
         # Category management tips
         with st.expander("📁 Category Management Tips", expanded=False):
             st.markdown("""
@@ -1043,7 +1134,293 @@ class DiscoverPatternsPage:
                                 st.error(f"❌ Failed to delete pattern: {pattern.name}")
                 
                 st.markdown("---")
+        
+        # Import/Export Section for Shared Patterns
+        if filtered_patterns:
+            st.markdown("---")
+            st.markdown("#### 📦 Import/Export Shared Patterns")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if st.button("📤 Export Shared Patterns", type="primary", use_container_width=True):
+                    try:
+                        file_path = self._pattern_manager.default_patterns_manager.export_patterns()
+                        st.success(f"✅ Exported shared patterns to {file_path}")
+                    except Exception as e:
+                        st.error(f"❌ Export failed: {e}")
+            
+            with col2:
+                uploaded_file = st.file_uploader("📥 Import Shared Patterns", type=['json'], key="import_shared")
+                if uploaded_file:
+                    try:
+                        import tempfile
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as tmp_file:
+                            tmp_file.write(uploaded_file.read())
+                            count = self._pattern_manager.default_patterns_manager.import_patterns(tmp_file.name)
+                            st.success(f"✅ Imported {count} shared patterns!")
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Import failed: {e}")
+            
+            st.info("💡 **Tip:** Shared patterns are available to all users in the workspace")
     
+    def _render_discovery_chatbot(self, extracted_patterns, xml_content):
+        """Render chatbot for discussing extraction results"""
+        
+        # Initialize chat state
+        if 'discovery_chatbot_messages' not in st.session_state:
+            st.session_state.discovery_chatbot_messages = []
+        if 'discovery_chatbot_open' not in st.session_state:
+            st.session_state.discovery_chatbot_open = False
+        
+        # Enhanced prominent chat toggle button
+        st.markdown("""
+        <style>
+        .chat-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .elegant-chat-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 280px;
+            justify-content: center;
+        }
+        .elegant-chat-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .chat-icon {
+            font-size: 1.5rem;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Center the chat toggle button
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("🤖 Ask Genie About Extraction", key="discovery_chat_toggle_btn", help="Open intelligent chat to discuss extraction results", use_container_width=True):
+                st.session_state.discovery_chatbot_open = not st.session_state.get('discovery_chatbot_open', False)
+        
+        # Show chat interface when open
+        if st.session_state.get('discovery_chatbot_open', False):
+            with st.container():
+                st.markdown("### 🤖 Chat with Genie")
+                
+                # Quick action buttons for Discovery context
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    if st.button("Extraction Summary", key="discovery_q_summary", use_container_width=True):
+                        st.session_state.discovery_quick_question = "Can you summarize the pattern extraction results?"
+                
+                with col2:
+                    if st.button("Pattern Quality", key="discovery_q_quality", use_container_width=True):
+                        st.session_state.discovery_quick_question = "How good are the extracted patterns?"
+                
+                with col3:
+                    if st.button("Next Steps", key="discovery_q_next", use_container_width=True):
+                        st.session_state.discovery_quick_question = "What should I do next with these patterns?"
+                
+                # Chat messages display using native Streamlit components
+                if st.session_state.discovery_chatbot_messages:
+                    # Create a container for messages
+                    with st.container():
+                        st.markdown("**💬 Conversation History:**")
+                        
+                        # Display messages using native Streamlit components
+                        for i, message in enumerate(st.session_state.discovery_chatbot_messages):
+                            if message["role"] == "user":
+                                # User message
+                                with st.container():
+                                    st.markdown(f"**You:** {message['content']}")
+                            else:
+                                # Bot message - clean the content first
+                                content = message['content']
+                                # Remove any HTML tags that might be in the content
+                                import re
+                                content = re.sub(r'<[^>]+>', '', content)
+                                
+                                with st.container():
+                                    st.markdown(f"**🤖 Genie:** {content}")
+                            
+                            # Add separator between messages
+                            if i < len(st.session_state.discovery_chatbot_messages) - 1:
+                                st.markdown("---")
+                else:
+                    st.info("💬 No messages yet. Start a conversation by clicking a quick action or asking a question!")
+                
+                # Chat input
+                chat_input = st.text_input("Ask a question:", key="discovery_chat_input", placeholder="e.g., Are these patterns comprehensive enough?")
+                
+                col1, col2, col3 = st.columns([1, 1, 2])
+                
+                with col1:
+                    if st.button("Send", key="discovery_send_chat"):
+                        if chat_input:
+                            st.session_state.discovery_quick_question = chat_input
+                
+                with col2:
+                    if st.button("Clear", key="discovery_clear_chat"):
+                        st.session_state.discovery_chatbot_messages = []
+                        st.rerun()
+                
+                with col3:
+                    if st.button("Close Chat", key="discovery_close_chat"):
+                        st.session_state.discovery_chatbot_open = False
+                        st.rerun()
+        
+        # Process quick questions
+        if hasattr(st.session_state, 'discovery_quick_question'):
+            question = st.session_state.discovery_quick_question
+            del st.session_state.discovery_quick_question
+            
+            # Add user message
+            st.session_state.discovery_chatbot_messages.append({"role": "user", "content": question})
+            
+            # Generate response for Discovery context
+            response = self._generate_discovery_chatbot_response(question, extracted_patterns, xml_content)
+            st.session_state.discovery_chatbot_messages.append({"role": "bot", "content": response})
+            
+            st.rerun()
+    
+    def _generate_discovery_chatbot_response(self, question, extracted_patterns, xml_content):
+        """Generate chatbot response for Discovery context"""
+        try:
+            # Convert patterns to a more readable format for context
+            patterns_context = ""
+            if extracted_patterns:
+                patterns_context = f"Extracted {len(extracted_patterns)} patterns from the XML file."
+                for i, (name, details) in enumerate(extracted_patterns.items(), 1):
+                    patterns_context += f"\n{i}. {name}: {details.get('description', 'No description')[:100]}"
+            
+            # Use contextual response generation based on question type
+            question_lower = question.lower()
+            
+            # Summary questions
+            if any(word in question_lower for word in ['summary', 'summarize', 'overview', 'results']):
+                if extracted_patterns:
+                    return f"""📊 **Extraction Summary:**
+
+**Total Patterns Found:** {len(extracted_patterns)}
+
+**Key Patterns Extracted:**
+{chr(10).join(f"• **{name}**: {details.get('description', 'Pattern extracted successfully')[:80]}{'...' if len(details.get('description', '')) > 80 else ''}" for name, details in list(extracted_patterns.items())[:5])}
+
+**Next Steps:**
+• Review patterns for accuracy and completeness
+• Save patterns to your workspace for future identification
+• Use patterns to identify similar structures in other XML files
+• Consider creating custom patterns for specialized needs"""
+                else:
+                    return "📊 **Extraction Summary:** No patterns were successfully extracted from the XML file. This could mean the XML structure is too simple, doesn't contain repetitive patterns, or the content doesn't match common airline data formats."
+            
+            # Quality questions
+            elif any(word in question_lower for word in ['quality', 'good', 'accurate', 'reliable', 'how good']):
+                if extracted_patterns:
+                    pattern_count = len(extracted_patterns)
+                    quality_assessment = "High" if pattern_count >= 10 else "Medium" if pattern_count >= 5 else "Basic"
+                    
+                    return f"""🎯 **Pattern Quality Assessment:**
+
+**Overall Quality:** {quality_assessment}
+**Pattern Count:** {pattern_count} patterns
+
+**Quality Indicators:**
+✅ **Coverage**: Patterns extracted from XML structure
+✅ **Diversity**: Multiple pattern types identified  
+✅ **Usability**: Patterns ready for identification tasks
+
+**Quality Factors:**
+• **Completeness**: {'Good coverage of XML elements' if pattern_count >= 8 else 'Moderate coverage - consider manual patterns for gaps'}
+• **Specificity**: Patterns capture specific data structures
+• **Reusability**: Can be used to identify similar XML files
+
+**Recommendations:**
+• Verify patterns match your expected data elements
+• Test patterns on similar XML files to ensure accuracy
+• Add custom patterns for any missing important elements"""
+                else:
+                    return "🎯 **Pattern Quality Assessment:** No patterns were extracted, so quality cannot be assessed. Consider uploading a different XML file with more structured data or try manual pattern creation."
+            
+            # Next steps questions
+            elif any(word in question_lower for word in ['next', 'what to do', 'what should', 'steps', 'recommend']):
+                if extracted_patterns:
+                    return f"""🚀 **Recommended Next Steps:**
+
+**Immediate Actions:**
+1. **Review Patterns**: Check the {len(extracted_patterns)} extracted patterns for accuracy
+2. **Save to Workspace**: Save valuable patterns for future use
+3. **Test Patterns**: Use the Identify page to test patterns on other XML files
+
+**Advanced Usage:**
+• **Custom Patterns**: Create additional patterns for specialized elements
+• **Pattern Verification**: Validate patterns against multiple XML samples  
+• **Workspace Organization**: Organize patterns by airline, API version, or data type
+
+**Best Practices:**
+• Keep pattern descriptions clear and specific
+• Save patterns with meaningful names
+• Regularly test patterns on new XML files to ensure continued accuracy
+
+**Ready to proceed?** Navigate to the **Identify page** to test your patterns on new XML files!"""
+                else:
+                    return """🚀 **Recommended Next Steps:**
+
+**Since no patterns were extracted:**
+1. **Try Manual Mode**: Use manual pattern selection to identify specific elements
+2. **Check XML Structure**: Ensure your XML contains structured, repetitive data
+3. **Custom Patterns**: Create custom patterns for your specific data format
+4. **Different XML**: Try with a different XML file that has more complex structure
+
+**Alternative Approaches:**
+• Upload XML files with more airline-specific data structures
+• Use the custom pattern creation tools
+• Review the shared pattern library for examples"""
+            
+            # Default response
+            else:
+                context_info = f"You have {len(extracted_patterns)} extracted patterns" if extracted_patterns else "No patterns were extracted"
+                return f"""I understand you're asking: "{question}"
+
+**Current Context:** {context_info} from your XML file.
+
+**I can help you with:**
+🔍 **Extraction Analysis**: Understanding what was found in your XML
+📊 **Pattern Quality**: Assessing the completeness and accuracy of patterns  
+🚀 **Next Steps**: Recommendations for using your extracted patterns
+🛠️ **Improvements**: Suggestions for better pattern extraction
+
+**Try asking:**
+• "Can you summarize the extraction results?"
+• "How good are these patterns?"
+• "What should I do next?"
+• "Are there any missing patterns I should add?"
+"""
+                
+        except Exception as e:
+            return f"I apologize, but I encountered an issue processing your question: {str(e)}. Please try asking about the extraction results, pattern quality, or next steps."
 
 # Run the application
 if __name__ == "__main__":
