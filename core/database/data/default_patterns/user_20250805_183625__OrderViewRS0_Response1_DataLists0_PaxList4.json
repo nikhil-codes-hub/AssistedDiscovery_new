@@ -1,0 +1,14 @@
+{
+  "pattern_id": "user_20250805_183625__OrderViewRS0_Response1_DataLists0_PaxList4",
+  "name": "PAX_LIST_STRUCTURE",
+  "description": "Defines the structure for a list of passengers, each with a unique PaxID, a PTC (Passenger Type Code), and personal details. Includes hierarchical relationships via PaxRefID, which references another PaxID within the same list.",
+  "prompt": "Verify that each <Pax> in <PaxList> has a unique <PaxID>, a valid <PTC>, and an <Individual> with required child elements. Ensure that <PaxRefID>, if present, references a valid <PaxID> within the same list.",
+  "example": "<PaxList>\n  <Pax>\n    <PaxID>PAX3</PaxID>\n    <PTC>INF</PTC>\n    <PaxRefID>PAX2</PaxRefID>\n    <Individual>\n      <IndividualID>PAX3</IndividualID>\n      <Birthdate>2023-09-24</Birthdate>\n      <GivenName>FBYJFH</GivenName>\n      <Surname>NDCX</Surname>\n    </Individual>\n  </Pax>\n  <Pax>\n    <PaxID>PAX2</PaxID>\n    <PTC>ADT</PTC>\n    <Individual>\n      <IndividualID>PAX2</IndividualID>\n      <Birthdate>1995-01-31</Birthdate>\n      <TitleName>MRS</TitleName>\n      <GivenName>AJUVCB</GivenName>\n      <Surname>NDCX</Surname>\n    </Individual>\n  </Pax>\n</PaxList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxList[4]",
+  "category": "flight",
+  "api": "LH",
+  "api_version": "17.2",
+  "created_at": "2025-08-05T18:36:25.704520",
+  "updated_at": "2025-08-05T18:36:25.704520",
+  "is_active": true
+}

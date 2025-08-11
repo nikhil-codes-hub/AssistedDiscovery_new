@@ -1,0 +1,14 @@
+{
+  "pattern_id": "user_20250806_173111__OrderViewRS0_Response1_DataLists0_PaxJourneyList3 and _OrderViewRS0_Response1_DataLists0_InstructionsList2",
+  "name": "PAX_JOURNEY_TO_INSTRUCTIONS_RELATIONSHIP",
+  "description": "Represents a potential dependency or configuration relationship between PaxJourneyList and InstructionsList. While no direct linkage is observed, the InstructionsList may provide contextual or operational instructions that apply to journeys in PaxJourneyList.",
+  "prompt": "Validate the potential relationship between <PaxJourneyList> and <InstructionsList>. Ensure that instructions in <InstructionsList> are contextually relevant to journeys in <PaxJourneyList>. If applicable, cross-check PaxJourneyID and PaxSegmentRefID values with any references in InstructionsList.",
+  "example": "<PaxJourneyList>\n  <PaxJourney>\n    <PaxJourneyID>FLT1</PaxJourneyID>\n    <Duration>PT4H55M</Duration>\n    <PaxSegmentRefID>SEG1</PaxSegmentRefID>\n  </PaxJourney>\n</PaxJourneyList>\n\n<InstructionsList>\n  <Instruction ListKey=\"OSI_54\">\n    <FreeFormTextInstruction>\n      <Remark>BOOKING SITE FR</Remark>\n    </FreeFormTextInstruction>\n  </Instruction>\n</InstructionsList>",
+  "xpath": "/OrderViewRS[0]/Response[1]/DataLists[0]/PaxJourneyList[3] and /OrderViewRS[0]/Response[1]/DataLists[0]/InstructionsList[2]",
+  "category": "flight",
+  "api": "LHG",
+  "api_version": "17.2",
+  "created_at": "2025-08-06T17:31:11.222466",
+  "updated_at": "2025-08-06T17:31:11.222466",
+  "is_active": true
+}
