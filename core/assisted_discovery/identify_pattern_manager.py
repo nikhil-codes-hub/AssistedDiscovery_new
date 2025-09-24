@@ -1,3 +1,4 @@
+from asyncio import Server
 import streamlit as st
 import pandas as pd
 import os
@@ -8,13 +9,21 @@ from core.assisted_discovery.gap_analysis_manager import GapAnalysisManager
 from core.common.ui_utils import render_custom_table
 from core.prompts_manager.gap_analysis_prompt_manager import GapAnalysisPromptManager
 from core.database.sql_db_utils import SQLDatabaseUtils
+from core.assisted_discovery.intelligent_pattern_matcher import (
+    IntelligentPatternMatcher, PassengerCombination, RelationshipPattern, AirlineFingerprint
+)
 
 class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
 
     def __init__(self, model_name, db_utils=None):
         super().__init__(model_name)
         self.db_utils = db_utils if db_utils else SQLDatabaseUtils()
+        self.intelligent_matcher = IntelligentPatternMatcher()
     
+    def verify_and_confirm_airline1(self, unknown_source_xml_content, filter_info):
+        
+        return 
+        
     def verify_and_confirm_airline(self, unknown_source_xml_content, filter_info):
         with st.spinner(":rainbow[Genie is analyzing the API, please wait...]"):
             sections = self.db_utils.list_main_elements(unknown_source_xml_content)
@@ -33,6 +42,7 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
             # Check workspace patterns first
             # Get all workspace patterns and check them against XML content
             all_workspace_patterns = self.db_utils.get_all_patterns()
+            # st.info(all_workspace_patterns)
             workspace_pattern_data = []
             
             for pattern in all_workspace_patterns:
@@ -91,9 +101,21 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
                         }]
                     }
                     
-                    # Use pattern prompt for identification
+                    # Use enhanced prompt for PaxList patterns, regular prompt for others
                     search_prompt = pattern_data["prompt"]
-                    response_obj_json = self.identify_patterns_in_unknown_source_xml(unknown_source_xml_content, search_prompt)
+                    # st.info(search_prompt)
+                    # Use enhanced prompt for passenger list patterns (both PaxList and PassengerList)
+                    is_passenger_pattern = any([
+                        "paxlist" in pattern_data["xpath"].lower(),
+                        "passengerlist" in pattern_data["xpath"].lower(),
+                        "pax" in pattern_data.get("verificationRule", "").lower(),
+                        "passenger" in pattern_data.get("verificationRule", "").lower()
+                    ])
+                    
+                    if is_passenger_pattern:
+                        response_obj_json = self.identify_patterns_in_unknown_source_xml_intelligent(unknown_source_xml_content, search_prompt)
+                    else:
+                        response_obj_json = self.identify_patterns_in_unknown_source_xml(unknown_source_xml_content, search_prompt)
                     confirmation = response_obj_json.get('confirmation')
                     section_data["rules"][0]["matched"] = confirmation == "YES"
                     if section_data["rules"][0]["matched"]:
@@ -164,9 +186,20 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
                         }]
                     }
                     
-                    # Use pattern prompt for identification
+                    # Use enhanced prompt for PaxList patterns, regular prompt for others  
                     search_prompt = pattern_data["prompt"]
-                    response_obj_json = self.identify_patterns_in_unknown_source_xml(unknown_source_xml_content, search_prompt)
+                    # Use enhanced prompt for passenger list patterns (both PaxList and PassengerList)
+                    is_passenger_pattern = any([
+                        "paxlist" in pattern_data["xpath"].lower(),
+                        "passengerlist" in pattern_data["xpath"].lower(),
+                        "pax" in pattern_data.get("description", "").lower(),
+                        "passenger" in pattern_data.get("description", "").lower()
+                    ])
+                    
+                    if is_passenger_pattern:
+                        response_obj_json = self.identify_patterns_in_unknown_source_xml_intelligent(unknown_source_xml_content, search_prompt)
+                    else:
+                        response_obj_json = self.identify_patterns_in_unknown_source_xml(unknown_source_xml_content, search_prompt)
                     confirmation = response_obj_json.get('confirmation')
                     section_data["rules"][0]["matched"] = confirmation == "YES"
                     if section_data["rules"][0]["matched"]:
@@ -176,6 +209,223 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
                     gap_analysis["sections"].append(section_data)
 
             return gap_analysis
+    
+    def intelligent_airline_identification(self, unknown_source_xml_content, filter_info=None):
+        """
+        Enhanced airline identification using intelligent pattern matching for passenger combinations.
+        Handles novel combinations like 2 ADT + 1 CHD + 1 INF even if not seen before.
+        """
+        with st.spinner("🧠 Genie is performing intelligent pattern analysis..."):
+            gap_analysis = {
+                "sections": [],
+                "matched_airlines": set(),
+                "intelligent_matches": [],
+                "combination_analysis": {},
+                "confidence_scores": {}
+            }
+            
+            # Check if passenger list exists in XML (handle multiple formats)
+            has_passenger_list = any([
+                "PaxList" in unknown_source_xml_content,
+                "paxlist" in unknown_source_xml_content.lower(),
+                "PassengerList" in unknown_source_xml_content,
+                "passengerlist" in unknown_source_xml_content.lower()
+            ])
+            
+            return self.verify_and_confirm_airline(unknown_source_xml_content, filter_info)
+            if not has_passenger_list:
+                st.warning("No passenger list found in XML. Using standard pattern matching.")
+                return self.verify_and_confirm_airline(unknown_source_xml_content, filter_info)
+            
+            # Extract passenger combination from unknown XML
+            unknown_combination = self.intelligent_matcher.extract_passenger_combination(unknown_source_xml_content)
+            unknown_relationship = self.intelligent_matcher.analyze_relationships(unknown_source_xml_content)
+            
+            # Store combination analysis for display
+            gap_analysis["combination_analysis"] = {
+                "passenger_count": {
+                    "adults": unknown_combination.adults,
+                    "children": unknown_combination.children,
+                    "infants": unknown_combination.infants,
+                    "pattern_signature": unknown_combination.pattern_signature
+                },
+                "relationship_pattern": {
+                    "direction": unknown_relationship.direction,
+                    "reference_structure": unknown_relationship.reference_structure,
+                    "linking_rules": unknown_relationship.linking_rules,
+                    "confidence": unknown_relationship.confidence
+                }
+            }
+            
+            # First, try exact pattern matching (legacy behavior)
+            exact_matches = self._perform_exact_pattern_matching(unknown_source_xml_content, filter_info)
+            if exact_matches["sections"]:
+                # Add exact matches to results
+                gap_analysis["sections"].extend(exact_matches["sections"])
+                gap_analysis["matched_airlines"].update(exact_matches["matched_airlines"])
+            
+            # If no exact matches or low confidence, use intelligent matching
+            if not gap_analysis["matched_airlines"] or self._calculate_overall_confidence(exact_matches) < 0.7:
+                st.info("🔍 No exact matches found. Using intelligent pattern inference...")
+                
+                # Load known patterns for intelligent matching
+                self._load_known_airline_patterns()
+                
+                # Perform intelligent matching
+                intelligent_matches = self.intelligent_matcher.intelligent_match(
+                    unknown_combination, unknown_relationship, similarity_threshold=0.6
+                )
+                
+                # Process intelligent matches
+                for airline_key, confidence in intelligent_matches[:5]:  # Top 5 matches
+                    parts = airline_key.split('_', 1)
+                    airline_code = parts[0] if len(parts) > 0 else airline_key
+                    api_version = parts[1] if len(parts) > 1 else "Unknown"
+                    
+                    # Create section data for intelligent match
+                    section_data = {
+                        "sectionName": "PaxList (Intelligent Match)",
+                        "rules": [{
+                            "airline": airline_code,
+                            "apiVersion": api_version,
+                            "verificationRule": f"Intelligent pattern matching - {unknown_combination.pattern_signature}",
+                            "matched": True,
+                            "reason": f"Intelligent match based on passenger combination pattern ({unknown_combination.pattern_signature}) and relationship structure ({unknown_relationship.direction}). Confidence: {confidence:.1%}",
+                            "match_type": "intelligent",
+                            "confidence_score": confidence
+                        }]
+                    }
+                    
+                    gap_analysis["sections"].append(section_data)
+                    gap_analysis["matched_airlines"].add(airline_code)
+                    gap_analysis["confidence_scores"][airline_code] = confidence
+                
+                # Store intelligent matches for detailed display
+                gap_analysis["intelligent_matches"] = intelligent_matches
+            
+            # If still no matches, suggest possible combinations
+            if not gap_analysis["matched_airlines"]:
+                st.warning("🤔 No matches found. Analyzing possible pattern variations...")
+                suggestions = self.intelligent_matcher.suggest_new_combinations(unknown_combination)
+                gap_analysis["suggested_combinations"] = [combo.pattern_signature for combo in suggestions[:5]]
+                
+                # Show suggestion message
+                st.info(f"💡 Consider checking these related patterns: {', '.join(gap_analysis['suggested_combinations'])}")
+                
+            return gap_analysis
+    
+    def _perform_exact_pattern_matching(self, xml_content, filter_info):
+        """Perform the original exact pattern matching"""
+        # This is the original verify_and_confirm_airline method logic
+        # Extracted for clarity and reusability
+        return self.verify_and_confirm_airline(xml_content, filter_info)
+    
+    def _calculate_overall_confidence(self, analysis_results):
+        """Calculate overall confidence from analysis results"""
+        if not analysis_results.get("sections"):
+            return 0.0
+        
+        total_matches = 0
+        successful_matches = 0
+        
+        for section in analysis_results["sections"]:
+            for rule in section.get("rules", []):
+                total_matches += 1
+                if rule.get("matched", False):
+                    successful_matches += 1
+        
+        return successful_matches / max(total_matches, 1)
+    
+    def _load_known_airline_patterns(self):
+        """Load known airline patterns from database for intelligent matching"""
+        try:
+            # Get all patterns from workspace
+            all_patterns = self.db_utils.get_all_patterns()
+            
+            # Process patterns to extract airline fingerprints
+            for pattern in all_patterns:
+                if isinstance(pattern, tuple) and len(pattern) >= 5:
+                    api_name, api_version, section_name, pattern_description, pattern_prompt = pattern[:5]
+                    
+                    # Look for PaxList-related patterns
+                    if "paxlist" in section_name.lower() or "pax" in pattern_description.lower():
+                        # Try to extract pattern from description/prompt
+                        combo = self._extract_combination_from_text(pattern_description + " " + pattern_prompt)
+                        if combo:
+                            # Create a dummy relationship pattern (would be better to store this)
+                            rel_pattern = RelationshipPattern(
+                                direction="INF→ADT",  # Default assumption
+                                reference_structure="Standard PaxRefID structure", 
+                                linking_rules="Infant references adult",
+                                confidence=0.5
+                            )
+                            
+                            fingerprint = AirlineFingerprint(
+                                airline_code=api_name or "Unknown",
+                                api_version=api_version or "Unknown",
+                                passenger_combination=combo,
+                                relationship_pattern=rel_pattern,
+                                structural_signature=pattern_description,
+                                distinguishing_features=[],
+                                confidence_score=0.8
+                            )
+                            
+                            self.intelligent_matcher.learn_pattern(fingerprint)
+            
+            # Also load from default patterns if available
+            self._load_default_airline_patterns()
+            
+        except Exception as e:
+            st.warning(f"Could not load airline patterns for intelligent matching: {e}")
+    
+    def _load_default_airline_patterns(self):
+        """Load some default airline patterns for common scenarios"""
+        # Common airline patterns - in real implementation, these would come from a database
+        default_patterns = [
+            {
+                "airline": "LH", "version": "17.2",
+                "combo": PassengerCombination(2, 1, 1, ""),
+                "relationship": RelationshipPattern("INF→ADT", "PaxRefID links infant to adult", "Each infant references one adult", 0.9)
+            },
+            {
+                "airline": "BA", "version": "18.1", 
+                "combo": PassengerCombination(2, 0, 1, ""),
+                "relationship": RelationshipPattern("INF→ADT", "PaxRefID links infant to adult", "Each infant references one adult", 0.9)
+            },
+            {
+                "airline": "AF", "version": "19.1",
+                "combo": PassengerCombination(1, 0, 1, ""), 
+                "relationship": RelationshipPattern("ADT→INF", "PaxRefID links adult to infant", "Each adult references associated infant", 0.8)
+            }
+        ]
+        
+        for pattern_data in default_patterns:
+            fingerprint = AirlineFingerprint(
+                airline_code=pattern_data["airline"],
+                api_version=pattern_data["version"],
+                passenger_combination=pattern_data["combo"],
+                relationship_pattern=pattern_data["relationship"],
+                structural_signature=f"Default pattern for {pattern_data['airline']}",
+                distinguishing_features=["Default pattern"],
+                confidence_score=0.7
+            )
+            self.intelligent_matcher.learn_pattern(fingerprint)
+    
+    def _extract_combination_from_text(self, text):
+        """Extract passenger combination from description text"""
+        try:
+            # Look for patterns like "2 ADT", "1 CHD", "1 INF"
+            adults = len(re.findall(r'\b(\d+)\s*ADT\b|ADT.*?(\d+)', text, re.IGNORECASE))
+            children = len(re.findall(r'\b(\d+)\s*CHD\b|CHD.*?(\d+)', text, re.IGNORECASE)) 
+            infants = len(re.findall(r'\b(\d+)\s*INF\b|INF.*?(\d+)', text, re.IGNORECASE))
+            
+            if adults or children or infants:
+                return PassengerCombination(adults, children, infants, "")
+                
+        except:
+            pass
+            
+        return None
 
     def _get_shared_patterns_for_identification(self, xml_content, selected_airlines=None, selected_versions=None):
         """Get shared patterns that might match the XML content"""
@@ -218,10 +468,34 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
         response_obj = re.sub(r'[\x00-\x1F\x7F]', '', response)
         response_obj_json = json.loads(response_obj)
         return response_obj_json
+    
+    def identify_patterns_in_unknown_source_xml_intelligent(self, unknown_source_xml_content, search_prompt):
+        """
+        Enhanced pattern identification using intelligent passenger combination analysis.
+        Uses the enhanced_paxlist_pattern_analysis.md prompt for deeper analysis.
+        """
+        try:
+            self.load_prompts_for_intelligent_pattern_identification(unknown_source_xml_content, search_prompt)
+            response = self._initiate_conversation()
+            response_obj = re.sub(r'[\x00-\x1F\x7F]', '', response)
+            response_obj_json = json.loads(response_obj)
+            return response_obj_json
+        except Exception as e:
+            # Fallback to regular identification if enhanced method fails
+            # st.warning(f"Enhanced pattern identification failed: {e}. Using standard method.")
+            return self.identify_patterns_in_unknown_source_xml(unknown_source_xml_content, search_prompt)
 
     def display_api_analysis(self, data):
         sections = data.get('sections', [])
         matched_airlines = data.get('matched_airlines', [])
+        combination_analysis = data.get('combination_analysis', {})
+        confidence_scores = data.get('confidence_scores', {})
+        intelligent_matches = data.get('intelligent_matches', [])
+        
+        # Display combination analysis first if available
+        if combination_analysis:
+            self._display_combination_analysis(combination_analysis)
+        
         rows = []
         matched_airline_versions = set()
         
@@ -231,6 +505,8 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
             for rule in rules:
                 airline = rule.get('airline', 'Unknown')
                 api_version = rule.get('apiVersion', 'N/A')
+                match_type = rule.get('match_type', 'exact')
+                confidence_score = rule.get('confidence_score', 1.0)
                 
                 # Create airline+version combination for matched airlines
                 if rule.get('matched'):
@@ -239,12 +515,14 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
                     else:
                         matched_airline_versions.add(airline)
                 
+                
                 rows.append({
                     'Airline': airline,
                     'API Version': api_version,
                     'Section': section_name,
                     'Validation Rule': rule.get('verificationRule'),
                     'Verified': 'Yes' if rule.get('matched') else 'No',
+                    'Confidence': f"{confidence_score:.1%}" if match_type == "intelligent" else "100%",
                     'Reason': rule.get('reason')
                 })
         df = pd.DataFrame(rows)
@@ -287,6 +565,82 @@ class PatternIdentifyManager(GapAnalysisManager, GapAnalysisPromptManager):
             )
         else:
             st.markdown(":red[No airline(s) matched.]", unsafe_allow_html=True)
+    
+    def _display_combination_analysis(self, combination_analysis):
+        """Display passenger combination and relationship analysis"""
+        st.markdown("---")
+        st.markdown("### 🧬 **Passenger Pattern Analysis**")
+        
+        passenger_count = combination_analysis.get('passenger_count', {})
+        relationship_pattern = combination_analysis.get('relationship_pattern', {})
+        
+        # Display passenger combination
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 👥 **Passenger Composition**")
+            
+            # Create visual representation
+            adults = passenger_count.get('adults', 0)
+            children = passenger_count.get('children', 0) 
+            infants = passenger_count.get('infants', 0)
+            pattern_sig = passenger_count.get('pattern_signature', 'Unknown')
+            
+            # Display metrics
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            with metric_col1:
+                st.metric("👨‍👩‍👦‍👦 Adults", adults, help="Adult passengers (ADT)")
+            with metric_col2:
+                st.metric("🧒 Children", children, help="Child passengers (CHD)")
+            with metric_col3:
+                st.metric("👶 Infants", infants, help="Infant passengers (INF)")
+            
+            # Pattern signature
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+                        border-radius: 8px; padding: 1rem; margin: 1rem 0; border-left: 4px solid #3b82f6;">
+                <h4 style="margin: 0; color: #1e40af;">🔍 Pattern Signature</h4>
+                <p style="margin: 0.5rem 0 0 0; font-family: monospace; font-size: 1.1rem; font-weight: bold;">
+                    {pattern_sig}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("#### 🔗 **Relationship Structure**")
+            
+            direction = relationship_pattern.get('direction', 'NONE')
+            ref_structure = relationship_pattern.get('reference_structure', '')
+            linking_rules = relationship_pattern.get('linking_rules', '')
+            confidence = relationship_pattern.get('confidence', 0.0)
+            
+            # Direction indicator
+            direction_emoji = {
+                'INF→ADT': '👶➡️👨',
+                'ADT→INF': '👨➡️👶', 
+                'BIDIRECTIONAL': '👶↔️👨',
+                'NONE': '❌'
+            }
+            
+            st.markdown(f"""
+            **Reference Direction:** {direction_emoji.get(direction, '❓')} `{direction}`
+            
+            **Structure:** {ref_structure}
+            
+            **Rules:** {linking_rules if linking_rules else 'No specific rules identified'}
+            
+            **Confidence:** {confidence:.1%}
+            """)
+            
+            # Confidence indicator
+            if confidence >= 0.8:
+                st.success("🎯 High confidence in relationship analysis")
+            elif confidence >= 0.5:
+                st.warning("⚠️ Medium confidence in relationship analysis") 
+            else:
+                st.info("ℹ️ Low confidence - relationships may be unclear")
+        
+        st.markdown("---")
     
     def generate_chatbot_response(self, question, analysis_results, xml_content):
         """

@@ -34,6 +34,29 @@ class GapAnalysisPromptManager(promptManager):
         ]
         self.agent.set_prompts(prompts)
     
+    def load_prompts_for_intelligent_pattern_identification(self, unknown_source_xml_content, search_prompt):
+        """
+        Load enhanced prompts for intelligent pattern identification that can handle
+        passenger combinations and airline-specific relationship patterns.
+        """
+        current_dir = Path(__file__).resolve().parent
+        file_path = current_dir / "../config/prompts/generic/enhanced_paxlist_pattern_analysis.md"
+        
+        try:
+            with file_path.open() as f:
+                intelligent_pattern_prompt = f.read()
+        except FileNotFoundError:
+            # Fallback to regular prompt if enhanced prompt not found
+            st.warning("Enhanced pattern analysis prompt not found. Using standard prompt.")
+            return self.load_prompts_for_pattern_identification(unknown_source_xml_content, search_prompt)
+        
+        prompts = [
+            {"role": "system", "content": intelligent_pattern_prompt},
+            {"role": "user", "content": "Here is the input XML file to analyze for passenger patterns:" + "\n" + "```" + unknown_source_xml_content + "```"},
+            {"role": "user", "content": f"Pattern to match against: {search_prompt}"}
+        ]
+        self.agent.set_prompts(prompts)
+    
     def load_prompts_for_extracting_patterns(self, content, insights=None):
         current_dir = Path(__file__).resolve().parent
         file_path = current_dir / "../config/prompts/generic/default_system_prompt_for_pattern_extraction.md"
@@ -43,6 +66,38 @@ class GapAnalysisPromptManager(promptManager):
             {"role": "system", "content": pattern_identifier_prompt},
             {"role": "user", "content": f"Here is the combined XML content - {content}"},
             {"role": "user", "content": f"Here are the insights - {insights}"}
+        ]
+        self.agent.set_prompts(prompts)
+    
+    def load_prompts_for_airline_focused_extraction(self, content, insights=None):
+        """
+        Load enhanced prompts for airline-focused pattern extraction that avoids 
+        generic patterns and focuses on airline-differentiating patterns.
+        """
+        current_dir = Path(__file__).resolve().parent
+        
+        # Try simplified prompt first (more reliable)
+        simplified_file_path = current_dir / "../config/prompts/generic/simplified_airline_focused_extraction.md"
+        detailed_file_path = current_dir / "../config/prompts/generic/airline_focused_pattern_extraction.md"
+        
+        try:
+            # Use simplified prompt for better reliability
+            with simplified_file_path.open() as f:
+                airline_focused_prompt = f.read()
+        except FileNotFoundError:
+            try:
+                # Fallback to detailed prompt
+                with detailed_file_path.open() as f:
+                    airline_focused_prompt = f.read()
+            except FileNotFoundError:
+                # Final fallback to regular prompt
+                st.warning("Airline-focused pattern extraction prompt not found. Using standard prompt.")
+                return self.load_prompts_for_extracting_patterns(content, insights)
+        
+        prompts = [
+            {"role": "system", "content": airline_focused_prompt},
+            {"role": "user", "content": f"XML content to analyze for airline fingerprints:\n{content}"},
+            {"role": "user", "content": f"Additional insights: {insights}" if insights else "No additional insights provided."}
         ]
         self.agent.set_prompts(prompts)
     

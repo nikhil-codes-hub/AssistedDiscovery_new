@@ -1,0 +1,563 @@
+                  <DataLists>
+                     <PassengerList>
+                        <Passenger PassengerID="T1">
+                           <PTC>ADT</PTC>
+                           <Birthdate>1990-12-12</Birthdate>
+                           <Individual>
+                              <Birthdate>1990-12-12</Birthdate>
+                              <Gender>Male</Gender>
+                              <NameTitle>MR</NameTitle>
+                              <GivenName>KIM</GivenName>
+                              <Surname>SOOHYUN</Surname>
+                           </Individual>
+                           <IdentityDocument>
+                              <IdentityDocumentNumber>DV23465</IdentityDocumentNumber>
+                              <IdentityDocumentType>PT</IdentityDocumentType>
+                              <IssuingCountryCode>US</IssuingCountryCode>
+                              <CitizenshipCountryCode>WS</CitizenshipCountryCode>
+                              <IssueDate>1999-09-06</IssueDate>
+                              <ExpiryDate>2030-06-09</ExpiryDate>
+                              <Birthdate>1990-12-12</Birthdate>
+                              <Gender>Male</Gender>
+                              <GivenName>KIM</GivenName>
+                              <Surname>SOOHYUN</Surname>
+                           </IdentityDocument>
+                           <ContactInfoRef>CI1</ContactInfoRef>
+                        </Passenger>
+                        <Passenger PassengerID="T2">
+                           <PTC>ADT</PTC>
+                           <Birthdate>1980-03-07</Birthdate>
+                           <Individual>
+                              <Birthdate>1980-03-07</Birthdate>
+                              <Gender>Male</Gender>
+                              <NameTitle>MRS</NameTitle>
+                              <GivenName>KIMI</GivenName>
+                              <Surname>SOOHYUN</Surname>
+                           </Individual>
+                           <IdentityDocument>
+                              <IdentityDocumentNumber>DV23466</IdentityDocumentNumber>
+                              <IdentityDocumentType>PT</IdentityDocumentType>
+                              <IssuingCountryCode>US</IssuingCountryCode>
+                              <CitizenshipCountryCode>WS</CitizenshipCountryCode>
+                              <IssueDate>1999-09-06</IssueDate>
+                              <ExpiryDate>2030-06-09</ExpiryDate>
+                              <Birthdate>1980-03-07</Birthdate>
+                              <Gender>Male</Gender>
+                              <GivenName>KIMI</GivenName>
+                              <Surname>SOOHYUN</Surname>
+                           </IdentityDocument>
+                           <ContactInfoRef>CI1</ContactInfoRef>
+                        </Passenger>
+                     </PassengerList>
+                     <ContactList>
+                        <ContactInformation ContactID="CI1">
+                           <ContactProvided>
+                              <Phone>
+                                 <Label>Mobile</Label>
+                                 <PhoneNumber>17196401108123</PhoneNumber>
+                              </Phone>
+                           </ContactProvided>
+                           <ContactProvided>
+                              <EmailAddress>
+                                 <EmailAddressValue>INDRANIL.GHOSH@AMADEUS.COM</EmailAddressValue>
+                              </EmailAddress>
+                           </ContactProvided>
+                        </ContactInformation>
+                     </ContactList>
+                     <BagDisclosureList>
+                        <BagDisclosure ListKey="BaggageKey-1">
+                           <BagRule>Y</BagRule>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Subject to CTA Reservation and Disclosure at time of fare quote and ticketing</Text>
+                              </Description>
+                           </Descriptions>
+                        </BagDisclosure>
+                     </BagDisclosureList>
+                     <BaggageAllowanceList>
+                        <BaggageAllowance BaggageAllowanceID="BAB8C330E1-CO">
+                           <BaggageCategory>CarryOn</BaggageCategory>
+                           <AllowanceDescription>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CARRYON HAND BAGGAGE ALLOWANCE</Text>
+                                 </Description>
+                                 <Description>
+                                    <Text>CARRY ON HAND BAGGAGE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>1</TotalQuantity>
+                              <ApplicableBag>CARRY ON HAND BAGGAGE</ApplicableBag>
+                              <PieceMeasurements Quantity="1"/>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                        <BaggageAllowance BaggageAllowanceID="BA20C306D7-CO">
+                           <BaggageCategory>CarryOn</BaggageCategory>
+                           <AllowanceDescription>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CARRYON HAND BAGGAGE ALLOWANCE</Text>
+                                 </Description>
+                                 <Description>
+                                    <Text>CARRY ON HAND BAGGAGE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>1</TotalQuantity>
+                              <ApplicableBag>CARRY ON HAND BAGGAGE</ApplicableBag>
+                              <PieceMeasurements Quantity="1"/>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                        <BaggageAllowance BaggageAllowanceID="BAC5D0F899-CO">
+                           <BaggageCategory>CarryOn</BaggageCategory>
+                           <AllowanceDescription>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CARRYON HAND BAGGAGE ALLOWANCE</Text>
+                                 </Description>
+                                 <Description>
+                                    <Text>CARRY ON HAND BAGGAGE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>1</TotalQuantity>
+                              <ApplicableBag>CARRY ON HAND BAGGAGE</ApplicableBag>
+                              <PieceMeasurements Quantity="1"/>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                        <BaggageAllowance BaggageAllowanceID="BA95D2CD4F-CO">
+                           <BaggageCategory>CarryOn</BaggageCategory>
+                           <AllowanceDescription>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CARRYON HAND BAGGAGE ALLOWANCE</Text>
+                                 </Description>
+                                 <Description>
+                                    <Text>CARRY ON HAND BAGGAGE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>1</TotalQuantity>
+                              <ApplicableBag>CARRY ON HAND BAGGAGE</ApplicableBag>
+                              <PieceMeasurements Quantity="1"/>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                        <BaggageAllowance BaggageAllowanceID="BAFBED4256">
+                           <BaggageCategory>Checked</BaggageCategory>
+                           <AllowanceDescription Concept="Piece">
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CHECKED ALLOWANCE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>2</TotalQuantity>
+                              <ApplicableBag>FIRST PAID CHECKED BAG</ApplicableBag>
+                              <PieceMeasurements Quantity="2">
+                                 <PieceWeightAllowance>
+                                    <MaximumWeight>
+                                       <Value>23</Value>
+                                       <UOM>KG</UOM>
+                                    </MaximumWeight>
+                                 </PieceWeightAllowance>
+                                 <PieceDimensionAllowance>
+                                    <DimensionUOM>Centimeter</DimensionUOM>
+                                    <MaxLinear>158</MaxLinear>
+                                    <MinLinear>0</MinLinear>
+                                 </PieceDimensionAllowance>
+                              </PieceMeasurements>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                        <BaggageAllowance BaggageAllowanceID="BACA8BEC13">
+                           <BaggageCategory>Checked</BaggageCategory>
+                           <AllowanceDescription Concept="Piece">
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <Descriptions>
+                                 <Description>
+                                    <Text>CHECKED ALLOWANCE</Text>
+                                 </Description>
+                              </Descriptions>
+                           </AllowanceDescription>
+                           <PieceAllowance>
+                              <ApplicableParty>Traveler</ApplicableParty>
+                              <TotalQuantity>2</TotalQuantity>
+                              <ApplicableBag>FIRST PAID CHECKED BAG</ApplicableBag>
+                              <PieceMeasurements Quantity="2">
+                                 <PieceWeightAllowance>
+                                    <MaximumWeight>
+                                       <Value>23</Value>
+                                       <UOM>KG</UOM>
+                                    </MaximumWeight>
+                                 </PieceWeightAllowance>
+                                 <PieceDimensionAllowance>
+                                    <DimensionUOM>Centimeter</DimensionUOM>
+                                    <MaxLinear>158</MaxLinear>
+                                    <MinLinear>0</MinLinear>
+                                 </PieceDimensionAllowance>
+                              </PieceMeasurements>
+                           </PieceAllowance>
+                           <BaggageDeterminingCarrier>
+                              <AirlineID>WS</AirlineID>
+                           </BaggageDeterminingCarrier>
+                        </BaggageAllowance>
+                     </BaggageAllowanceList>
+                     <DisclosureList>
+                        <Disclosures ListKey="GDPR">
+                           <Description>
+                              <Text>Data Protection Notice: Your personal data will be processed in accordance with the applicable carriers privacy policy and, if your booking is made via a reservation system provider ("GDS" ), with its privacy policy. These are available at http://www.iatatravelcenter.com/privacy or from the carrier, GDS or TSP directly. You should read this documentation, which applies to your booking and specifies, for example, how your personal data is collected, stored, used, disclosed and transferred.</Text>
+                              <Link>http://www.iatatravelcenter.com/privacy</Link>
+                           </Description>
+                        </Disclosures>
+                     </DisclosureList>
+                     <FareList>
+                        <FareGroup ListKey="FG1" refs="FRK988D4EA4">
+                           <Fare>
+                              <FareCode>70J</FareCode>
+                           </Fare>
+                           <FareBasisCode>
+                              <Code>WC0D0QRS</Code>
+                           </FareBasisCode>
+                        </FareGroup>
+                        <FareGroup ListKey="FG2" refs="FRKC5884823">
+                           <Fare>
+                              <FareCode>70J</FareCode>
+                           </Fare>
+                           <FareBasisCode>
+                              <Code>WP0D0ZRS</Code>
+                           </FareBasisCode>
+                        </FareGroup>
+                     </FareList>
+                     <FlightSegmentList>
+                        <FlightSegment SegmentKey="S3" ConnectInd="true" ElectronicTicketInd="true" SecureFlight="true">
+                           <Departure>
+                              <AirportCode>YYZ</AirportCode>
+                              <Date>2025-07-29</Date>
+                              <Time>06:30</Time>
+                              <AirportName>Toronto Lester B Pearson Intl, CA</AirportName>
+                              <Terminal>
+                                 <Name>3</Name>
+                              </Terminal>
+                           </Departure>
+                           <Arrival>
+                              <AirportCode>YYC</AirportCode>
+                              <Date>2025-07-29</Date>
+                              <Time>08:49</Time>
+                              <AirportName>Calgary, CA</AirportName>
+                           </Arrival>
+                           <MarketingCarrier>
+                              <AirlineID>WS</AirlineID>
+                              <Name>Westjet</Name>
+                              <FlightNumber>653</FlightNumber>
+                           </MarketingCarrier>
+                           <Equipment>
+                              <AircraftCode>7M8</AircraftCode>
+                              <Name>Boeing 737MAX 8 Passenger</Name>
+                           </Equipment>
+                           <ClassOfService>
+                              <Code>W</Code>
+                           </ClassOfService>
+                           <FlightDetail>
+                              <FlightDistance>
+                                 <Value>1678</Value>
+                                 <UOM>Miles</UOM>
+                              </FlightDistance>
+                              <FlightDuration>
+                                 <Value>PT4H19M</Value>
+                              </FlightDuration>
+                              <Stops>
+                                 <StopQuantity>0</StopQuantity>
+                              </Stops>
+                              <ResDateTime>
+                                 <Date time="08:07">2025-06-02</Date>
+                              </ResDateTime>
+                           </FlightDetail>
+                        </FlightSegment>
+                        <FlightSegment SegmentKey="S4" ElectronicTicketInd="true" SecureFlight="true">
+                           <Departure>
+                              <AirportCode>YYC</AirportCode>
+                              <Date>2025-07-29</Date>
+                              <Time>20:35</Time>
+                              <AirportName>Calgary, CA</AirportName>
+                           </Departure>
+                           <Arrival>
+                              <AirportCode>LHR</AirportCode>
+                              <Date>2025-07-30</Date>
+                              <Time>12:05</Time>
+                              <AirportName>London Heathrow Apt, GB</AirportName>
+                              <Terminal>
+                                 <Name>4</Name>
+                              </Terminal>
+                           </Arrival>
+                           <MarketingCarrier>
+                              <AirlineID>WS</AirlineID>
+                              <Name>Westjet</Name>
+                              <FlightNumber>18</FlightNumber>
+                           </MarketingCarrier>
+                           <Equipment>
+                              <AircraftCode>789</AircraftCode>
+                              <Name>Boeing 787-9</Name>
+                           </Equipment>
+                           <ClassOfService>
+                              <Code>W</Code>
+                           </ClassOfService>
+                           <FlightDetail>
+                              <FlightDistance>
+                                 <Value>4364</Value>
+                                 <UOM>Miles</UOM>
+                              </FlightDistance>
+                              <FlightDuration>
+                                 <Value>PT8H30M</Value>
+                              </FlightDuration>
+                              <Stops>
+                                 <StopQuantity>0</StopQuantity>
+                              </Stops>
+                              <ResDateTime>
+                                 <Date time="08:07">2025-06-02</Date>
+                              </ResDateTime>
+                           </FlightDetail>
+                        </FlightSegment>
+                     </FlightSegmentList>
+                     <FlightList>
+                        <Flight FlightKey="F1">
+                           <SegmentReferences OnPoint="YYZ" OffPoint="LHR">S3 S4</SegmentReferences>
+                        </Flight>
+                     </FlightList>
+                     <OriginDestinationList>
+                        <OriginDestination OriginDestinationKey="O1">
+                           <DepartureCode>YYZ</DepartureCode>
+                           <ArrivalCode>LHR</ArrivalCode>
+                           <FlightReferences OnPoint="YYZ" OffPoint="LHR">F1</FlightReferences>
+                        </OriginDestination>
+                     </OriginDestinationList>
+                     <InstructionsList>
+                        <Instruction ListKey="I3">
+                           <FreeFormTextInstruction refs="S3">
+                              <Remark>503 3/18/22/27/99</Remark>
+                           </FreeFormTextInstruction>
+                        </Instruction>
+                     </InstructionsList>
+                     <PriceClassList>
+                        <PriceClass PriceClassID="WSPremiumFlex-1">
+                           <Name>PremiumFlex</Name>
+                           <Code>5</Code>
+                           <Descriptions>
+                              <Description>
+                                 <Text>First and second checked bags included</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Premium seat selection included *</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Extra leg and elbow room in Premium seats  **</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Itinerary change/cancel for no fee. Difference in fare may apply.</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Inflight food and beverages (including wine, beer and spirits)</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Priority screening at available airports included</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Priority boarding included</Text>
+                              </Description>
+                              <Description>
+                                 <Text>Non-refundable to original form of payment</Text>
+                              </Description>
+                              <Description>
+                                 <Text>WestJet Rewards earn</Text>
+                              </Description>
+                              <Description>
+                                 <Text>* Advance seat selection not applicable on flights operated by our airline partners</Text>
+                              </Description>
+                              <Description>
+                                 <Text>** Seats on flights operated by WestJet Encore and WestJet Link, operated by Pacific   Coastal Airlines, do not have extra legroom or space.Varies depending on aircraft, flight length, time of day and availability</Text>
+                              </Description>
+                           </Descriptions>
+                        </PriceClass>
+                     </PriceClassList>
+                     <ServiceDefinitionList>
+                        <ServiceDefinition ServiceDefinitionID="A-SA-0B6-WS">
+                           <Name>Complimentary Advance Seat Selection</Name>
+                           <Encoding>
+                              <RFIC>A</RFIC>
+                              <Type>1</Type>
+                              <Code>SA</Code>
+                              <SubCode>0B6</SubCode>
+                           </Encoding>
+                           <FeeMethod>SA</FeeMethod>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Complimentary advanced seat selection including access to Plus fare seats which include extra legroom</Text>
+                                 <Application>Details</Application>
+                              </Description>
+                              <Description>
+                                 <Text>Included</Text>
+                                 <Application>Type</Application>
+                              </Description>
+                           </Descriptions>
+                           <Settlement>
+                              <Method>F</Method>
+                           </Settlement>
+                           <BookingInstructions>
+                              <Method>API</Method>
+                           </BookingInstructions>
+                           <ValidatingCarrier>WS</ValidatingCarrier>
+                           <Detail>
+                              <ServiceCoupon>
+                                 <CouponType>F</CouponType>
+                              </ServiceCoupon>
+                           </Detail>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="G-ML-0B3-WS">
+                           <Name>Complimentary food and drink from onboard menu</Name>
+                           <Encoding>
+                              <RFIC>G</RFIC>
+                              <Type>1</Type>
+                              <Code>ML</Code>
+                              <SubCode>0B3</SubCode>
+                           </Encoding>
+                           <FeeMethod>ML</FeeMethod>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Complimentary food and drink from onboard menu</Text>
+                                 <Application>Details</Application>
+                              </Description>
+                              <Description>
+                                 <Text>Included</Text>
+                                 <Application>Type</Application>
+                              </Description>
+                           </Descriptions>
+                           <Settlement>
+                              <Method>F</Method>
+                           </Settlement>
+                           <BookingInstructions>
+                              <Method>API</Method>
+                           </BookingInstructions>
+                           <ValidatingCarrier>WS</ValidatingCarrier>
+                           <Detail>
+                              <ServiceCoupon>
+                                 <CouponType>F</CouponType>
+                              </ServiceCoupon>
+                           </Detail>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="E-TS-0G6-WS">
+                           <Name>Advance Boarding</Name>
+                           <Encoding>
+                              <RFIC>E</RFIC>
+                              <Type>1</Type>
+                              <Code>TS</Code>
+                              <SubCode>0G6</SubCode>
+                           </Encoding>
+                           <FeeMethod>TS</FeeMethod>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Advance Boarding</Text>
+                                 <Application>Details</Application>
+                              </Description>
+                              <Description>
+                                 <Text>Included</Text>
+                                 <Application>Type</Application>
+                              </Description>
+                           </Descriptions>
+                           <Settlement>
+                              <Method>F</Method>
+                           </Settlement>
+                           <BookingInstructions>
+                              <Method>API</Method>
+                           </BookingInstructions>
+                           <ValidatingCarrier>WS</ValidatingCarrier>
+                           <Detail>
+                              <ServiceCoupon>
+                                 <CouponType>F</CouponType>
+                              </ServiceCoupon>
+                           </Detail>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRVF973626F-CO">
+                           <Name>Carry On Bag Allowance</Name>
+                           <BaggageAllowanceRef>BAB8C330E1-CO</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Carry On Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRVFEB701F0-CO">
+                           <Name>Carry On Bag Allowance</Name>
+                           <BaggageAllowanceRef>BA20C306D7-CO</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Carry On Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRV317A697E-CO">
+                           <Name>Carry On Bag Allowance</Name>
+                           <BaggageAllowanceRef>BAC5D0F899-CO</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Carry On Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRV574BDE79-CO">
+                           <Name>Carry On Bag Allowance</Name>
+                           <BaggageAllowanceRef>BA95D2CD4F-CO</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Carry On Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRVC944A732">
+                           <Name>Checked Bag Allowance</Name>
+                           <BaggageAllowanceRef>BAFBED4256</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Checked Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                        <ServiceDefinition ServiceDefinitionID="BASRVAE948E3D">
+                           <Name>Checked Bag Allowance</Name>
+                           <BaggageAllowanceRef>BACA8BEC13</BaggageAllowanceRef>
+                           <Descriptions>
+                              <Description>
+                                 <Text>Checked Bag Allowance</Text>
+                              </Description>
+                           </Descriptions>
+                        </ServiceDefinition>
+                     </ServiceDefinitionList>
+                  </DataLists>

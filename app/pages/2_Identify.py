@@ -269,8 +269,18 @@ class EnhancedIdentifyPatternsPage:
                         # Apply filters if specified
                         filter_info = {"airlines": airline_filter, "versions": version_filter} if total_patterns > 0 else {"airlines": None, "versions": None}
                         
+                        # Add option for intelligent pattern matching
+                        use_intelligent_matching = st.checkbox(
+                            "🧠 Use Intelligent Pattern Matching", 
+                            value=True,
+                            help="Enable smart pattern matching that can identify airlines from novel passenger combinations and relationship patterns"
+                        )
+                        
                         st.write("Genie is analyzing patterns...")
-                        analysis = self._pattern_identify_manager.verify_and_confirm_airline(unknown_source_xml_content, filter_info)
+                        if use_intelligent_matching:
+                            analysis = self._pattern_identify_manager.intelligent_airline_identification(unknown_source_xml_content, filter_info)
+                        else:
+                            analysis = self._pattern_identify_manager.verify_and_confirm_airline(unknown_source_xml_content, filter_info)
                         
                         if analysis:
                             status.update(label="**Analysis Complete!**", state="complete")

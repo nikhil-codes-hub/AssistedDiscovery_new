@@ -10,6 +10,7 @@ import pandas as pd
 from core.common.ui_utils import render_custom_table
 from core.common.logging_manager import get_logger, log_user_action, log_error, log_performance, PerformanceLogger
 from core.database.default_patterns_manager import DefaultPatternsManager
+from core.assisted_discovery.airline_pattern_classifier import AirlinePatternClassifier, PatternValueType
 
 
 class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
@@ -18,6 +19,7 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
         super().__init__(model_name)
         self.logger = get_logger("pattern_manager")
         self.default_patterns_manager = DefaultPatternsManager()
+        self.airline_classifier = AirlinePatternClassifier()
         
     def extract_patterns(self, uploaded_file):
         """
@@ -54,6 +56,8 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                 
             # Insights are now automatically included
             include_insights = True
+            
+            # Airline-focused extraction is now default - no mode selection needed
             
             # Enhanced extraction button with modern styling
             extract_button_col1, extract_button_col2 = st.columns([2, 1])
@@ -99,9 +103,32 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                     
                     progress_bar.progress(70)
                     status_text.text("🤖 Generating patterns with Genie...")
-                    response = self.generate_prompt_from_xml_chunk(selected_nodes_map, insights)
+                    response = self.generate_airline_focused_patterns(selected_nodes_map, insights)
                     reasoning_log = response.get('reasoning_log', '') if response else ''
-                    patterns = response.get('patterns', []) if response else []
+                    raw_patterns = response.get('patterns', []) if response else []
+                    
+                    # Filter patterns using airline classifier with airline-focused threshold
+                    if raw_patterns:
+                        progress_bar.progress(85)
+                        status_text.text("🔍 Filtering for high-value patterns...")
+                        min_score = 50.0  # Higher threshold for airline-focused filtering
+                            
+                        patterns, classifications = self.airline_classifier.filter_patterns(
+                            [p['pattern'] for p in raw_patterns], min_score=min_score
+                        )
+                        # Convert back to expected format
+                        patterns = [{'pattern': p} for p in patterns]
+                        
+                        # Log classification results
+                        recommendations = self.airline_classifier.get_pattern_recommendations([p['pattern'] for p in raw_patterns])
+                        self.logger.info(f"Pattern extraction efficiency: {recommendations['efficiency_score']:.1f}%")
+                        
+                        # Show filtering results
+                        if len(raw_patterns) > len(patterns):
+                            filtered_count = len(raw_patterns) - len(patterns)
+                            st.info(f"🔍 Filtered out {filtered_count} generic patterns, keeping {len(patterns)} high-value patterns")
+                    else:
+                        patterns = []
 
                     progress_bar.progress(90)
                     # Only update session state if patterns are extracted
@@ -118,7 +145,8 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                         status.update(label="✅ **Pattern Extraction Complete!**", state="complete")
                         
                         # Success animation
-                        st.success(f"🎉 **Extraction Complete!** Found {len(patterns)} high-quality patterns ready for analysis.")
+                        high_value_count = len([p for p in patterns if p['pattern'].get('airline_value_score', 0) >= 80])
+                        st.success(f"🎉 **Extraction Complete!** Found {len(patterns)} high-quality patterns ({high_value_count} high-value) ready for analysis.")
                     else:
                         progress_bar.progress(100)
                         status_text.text("⚠️ No patterns were extracted.")
@@ -254,6 +282,65 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
             # If still not JSON, return None
             st.warning("Could not parse pattern extraction response as JSON. Using default behavior.")
             return None
+    
+    def generate_airline_focused_patterns(self, content, insights=None):
+        """
+        Generate airline-focused patterns that help distinguish between carriers.
+        Uses the enhanced airline_focused_pattern_extraction.md prompt.
+        
+        Args:
+            content (str): The XML content
+            insights (dict, optional): Insights about the XML structure and relationships
+        """
+        try:
+            self.load_prompts_for_airline_focused_extraction(content, insights)
+            response = self._initiate_conversation()
+            
+            # Debug logging
+            self.logger.info(f"Airline-focused extraction response length: {len(response)}")
+            self.logger.debug(f"First 500 chars of response: {response[:500]}")
+            
+            # Try to clean the response first
+            response_cleaned = response.strip()
+            
+            # Remove common markdown formatting that might interfere
+            if response_cleaned.startswith('```json'):
+                response_cleaned = response_cleaned[7:]
+            if response_cleaned.startswith('```'):
+                response_cleaned = response_cleaned[3:]
+            if response_cleaned.endswith('```'):
+                response_cleaned = response_cleaned[:-3]
+                
+            response_cleaned = response_cleaned.strip()
+            
+            try:
+                response_json = json.loads(response_cleaned)
+                self.logger.info("Successfully parsed airline-focused pattern extraction response")
+                return response_json
+            except json.JSONDecodeError as e:
+                self.logger.error(f"JSON decode error: {e}")
+                self.logger.error(f"Problematic response: {response_cleaned[:1000]}")
+                
+                # Try to fix common JSON issues
+                if response_cleaned.startswith('{') and response_cleaned.endswith('}'):
+                    try:
+                        # Remove control characters that might cause issues
+                        import re
+                        cleaned_response = re.sub(r'[\x00-\x1F\x7F]', '', response_cleaned)
+                        response_json = json.loads(cleaned_response)
+                        return response_json
+                    except:
+                        pass
+                
+                st.warning("Could not parse airline-focused pattern extraction response. Using fallback.")
+                self.logger.warning("Falling back to standard extraction method")
+                return self.generate_prompt_from_xml_chunk(content, insights)
+                
+        except Exception as e:
+            self.logger.error(f"Airline-focused extraction failed with exception: {e}")
+            st.warning(f"Airline-focused extraction failed: {str(e)}. Using standard extraction.")
+            # Fallback to standard extraction
+            return self.generate_prompt_from_xml_chunk(content, insights)
 
     def _extract_insights(self, selected_nodes_map):
         """
@@ -715,7 +802,9 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                     'path': tag,
                     'description': self._format_xml_content(values[1]),
                     'prompt': self._format_xml_content(values[2]),
-                    'example': 'N/A'
+                    'example': 'N/A',
+                    'airline_value_score': None,
+                    'airline_category': 'legacy'
                 }
             else:
                 values_dict = {
@@ -723,8 +812,11 @@ class PatternManager(GapAnalysisManager, GapAnalysisPromptManager):
                     'path': tag,
                     'description': self._format_xml_content(values.get('description', '')),
                     'prompt': self._format_xml_content(values.get('prompt', '')),
-                    'example': values.get('example', 'N/A')
+                    'example': values.get('example', 'N/A'),
+                    'airline_value_score': values.get('airline_value_score'),
+                    'airline_category': values.get('airline_category', 'unknown')
                 }
+            
             data.append([
                 values_dict['name'],
                 values_dict['path'],

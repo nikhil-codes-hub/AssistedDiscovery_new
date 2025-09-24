@@ -1,5 +1,27 @@
 <Response>
 	<DataLists>
+				<ServiceDefinitionList>
+				<ServiceDefinition>
+					<ServiceDefinitionID>BAGALLOW_1</ServiceDefinitionID>
+					<Name>Bag allowances</Name>
+					<Description>
+						<DescID>Bag allowances</DescID>
+					</Description>
+					<ServiceDefinitionAssociation>
+						<BaggageAllowanceRefID>FBA1</BaggageAllowanceRefID>
+					</ServiceDefinitionAssociation>
+				</ServiceDefinition>
+				<ServiceDefinition>
+					<ServiceDefinitionID>BAGALLOW_2</ServiceDefinitionID>
+					<Name>Bag allowances</Name>
+					<Description>
+						<DescID>Bag allowances</DescID>
+					</Description>
+					<ServiceDefinitionAssociation>
+						<BaggageAllowanceRefID>FBA2</BaggageAllowanceRefID>
+					</ServiceDefinitionAssociation>
+				</ServiceDefinition>
+			</ServiceDefinitionList>
 		<BaggageAllowanceList>
 			<BaggageAllowance>
 				<BaggageAllowanceID>FBA1</BaggageAllowanceID>
@@ -18,6 +40,18 @@
 				</WeightAllowance>
 			</BaggageAllowance>
 		</BaggageAllowanceList>
+					<PaxJourneyList>
+				<PaxJourney>
+					<PaxJourneyID>FLT1</PaxJourneyID>
+					<Duration>PT4H55M</Duration>
+					<PaxSegmentRefID>SEG1</PaxSegmentRefID>
+				</PaxJourney>
+				<PaxJourney>
+					<PaxJourneyID>FLT2</PaxJourneyID>
+					<Duration>PT4H35M</Duration>
+					<PaxSegmentRefID>SEG2</PaxSegmentRefID>
+				</PaxJourney>
+			</PaxJourneyList>
 		<ContactInfoList>
 			<ContactInfo>
 				<ContactInfoID>CTCPAX2_1</ContactInfoID>
