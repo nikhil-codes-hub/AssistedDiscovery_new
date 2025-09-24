@@ -25,6 +25,9 @@ JIRA_API_KEY
 *token*
 *TOKEN*
 
+# Exception for legitimate files
+!**/TokenCostCalculator.py
+
 # Database files (may contain sensitive data)
 *.db
 *.sqlite
