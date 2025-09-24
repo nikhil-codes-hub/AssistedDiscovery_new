@@ -40,7 +40,7 @@ def chunk_xml(file):
     return result
 
 def save_patterns():
-    write_path = "/Users/nlepakshi/Documents/GitHub/genie/core/config/patterns/patterns.json"
+    write_path = "core/config/patterns/patterns.json"
     with open(write_path, "w") as f:
         json.dump(st.session_state.tags_to_select, f, indent=4)
 

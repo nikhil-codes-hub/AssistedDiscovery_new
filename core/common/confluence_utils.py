@@ -3,8 +3,8 @@ from dotenv import load_dotenv, find_dotenv
 from atlassian import Confluence
 
 _ = load_dotenv(find_dotenv())
-ATLASSIAN_USER = ''
-ATLASSIAN_TOKEN = ''
+ATLASSIAN_USER = os.getenv('ATLASSIAN_USER', '')
+ATLASSIAN_TOKEN = os.getenv('ATLASSIAN_TOKEN', '')
 
 confluence = Confluence(
     url='https://amadeus.atlassian.net',
